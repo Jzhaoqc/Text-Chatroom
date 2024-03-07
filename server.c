@@ -75,9 +75,6 @@ int main(int argc, char *argv[]){
     pthread_setup(pthread_attr);
 
 
-
-
-
     return 0;
 }
 
