@@ -17,7 +17,7 @@ TARGETS=client server # Target executable names
 all: $(TARGETS)
 
 client: client.o
-	$(CC) $(CFLAGS) client.o -o client
+	$(CC) $(CFLAGS) client.o -o client -lpthread
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
