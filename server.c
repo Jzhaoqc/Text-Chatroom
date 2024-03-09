@@ -132,7 +132,7 @@ void client_routine(void* arg){
     char* client_id;
     char* password;
 
-    user.sock_id = pthread_arg->client_sock_fd;
+    user.sock_fd = pthread_arg->client_sock_fd;
     user.status = LOGOUT;
 
     Message recv_message, reply_message;
@@ -167,6 +167,7 @@ void client_routine(void* arg){
                     //Check login credential
                     switch (recv_message.type){
                         
+                        //User login
                         case TYPE_LOGIN:
                             //Extract source information
                             client_id = recv_message.source;
@@ -176,8 +177,11 @@ void client_routine(void* arg){
                             //Check if user exist
                             bool user_exists = false;
                             for(int i=0; i<3; i++){
+                                //Logging in if username and password matches
                                 if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, password)==0)){
                                     user_exists = true;
+                                    user.status = LOGIN;
+                                    user.username = clients[i].username;
                                     break;
                                 }
                             }
@@ -185,7 +189,6 @@ void client_routine(void* arg){
                             //Construct response message
                             if(user_exists){
                                 reply_message.type = TYPE_LO_ACK;
-                                user.status = LOGIN;
                             }else{
                                 reply_message.type = TYPE_LO_NACK;
                                 reply_message.data = "Invalid user name or password\n";
@@ -204,6 +207,17 @@ void client_routine(void* arg){
 
 
                 case LOGIN:
+                    //Check message type for logged in users
+                    switch(recv_message.type){
+
+                        //User exit
+                        case TYPE_EXIT:
+                            printf("User %s just exited from server\n", user.username);
+                            //delete_user(&user);
+                            close(client_sock_fd);
+                            loop = false;
+                        break;
+                    }
                 break;
                 
 

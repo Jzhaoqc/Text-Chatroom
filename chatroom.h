@@ -33,6 +33,6 @@ typedef struct message{
 
 typedef struct user{
     char username[100];
-    int sock_id;
+    int sock_fd;
     int status;
 }User;
