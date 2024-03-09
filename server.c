@@ -94,7 +94,7 @@ int main(int argc, char *argv[]){
 
     while(1){
 
-        pthread_arg = (pthread_client_arg*) malloc(sizeof pthread_client_arg);
+        pthread_arg = (pthread_client_arg*) malloc(sizeof (pthread_client_arg));
         if(pthread_arg == NULL){
             perror("ERROR: server pthread_client_arg MALLOC\n");
             continue;
@@ -141,19 +141,19 @@ void client_routine(void* arg){
     while(loop){
 
         //Reset receive message and reply message
-        memset(&recv_message, 0, sizeof Message);
-        memset(&reply_message, 0, sizeof Message);
+        memset(&recv_message, 0, sizeof (Message));
+        memset(&reply_message, 0, sizeof (Message));
 
-        n = read(client_sock_fd, &recv_message, sizeof Message);
+        n = read(client_sock_fd, &recv_message, sizeof (Message));
         if(n < 0){
             perror("ERROR: server read\n");
             exit(EXIT_FAILURE);
         }
         else if(n == 0){
             /*need implementation*/
-            delete_user(&user);
+            //delete_user(&user);
         }
-        else if(n != sizeof Message){
+        else if(n != sizeof (Message)){
             perror("WARNING: Message wrong size\n");
             continue;
         }
@@ -169,8 +169,8 @@ void client_routine(void* arg){
                         
                         case TYPE_LOGIN:
                             //Extract source information
-                            client_id = recv_message.source;
-                            password = recv_message.data;
+                            client_id = (char*) recv_message.source;
+                            password = (char*) recv_message.data;
                             printf("Client ID: %s, Password: %s\n", client_id, password);
 
                             //Check if user exist
@@ -187,17 +187,19 @@ void client_routine(void* arg){
                                 reply_message.type = TYPE_LO_ACK;
                                 user.status = LOGIN;
                             }else{
+                                char* msg = "Invalid user name or password\n";
                                 reply_message.type = TYPE_LO_NACK;
-                                reply_message.data = "Invalid user name or password\n";
+                                memcpy(reply_message.data,msg,100);
                             }
 
-                            write(client_sock_fd, &reply_message, sizeof Message);
-                        break:
+                            write(client_sock_fd, &reply_message, sizeof (Message));
+                        break;
 
                         default:
-                            reply_message.type = TYPE_LO_NACK;
-                            reply_message.data = "ERROR: user login switch defaulting\n";
-                            write(client_sock_fd, &reply_message, sizeof Message);
+                            // char* msg = "ERROR: user login switch defaulting\n";
+                            // reply_message.type = TYPE_LO_NACK;
+                            // memcpy(reply_message.data,msg,100);
+                            // write(client_sock_fd, &reply_message, sizeof (Message));
                         break;
                     }
                 break;

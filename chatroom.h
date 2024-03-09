@@ -36,3 +36,5 @@ typedef struct user{
     int sock_id;
     int status;
 }User;
+
+#endif
