@@ -182,12 +182,7 @@ void client_routine(void* arg){
                                 if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
                                     user_exists = true;
                                     user.status = LOGIN;
-<<<<<<< HEAD
-                                    strcpy(user.username, clients[i].username); // Changed to strcpy
-                                    
-=======
                                     strcpy(user.username, clients[i].username);
->>>>>>> 5e4ff90319f1e73283fd6d16ab8a623f8f3529cc
                                     break;
                                 }
                             }
