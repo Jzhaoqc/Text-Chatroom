@@ -34,6 +34,7 @@ const char *QUIT_CMD = "/quit";
 // State of the client
 #define START 0
 #define LOGIN 1
+#define JOINED 2
 
 // Other defines
 #define BUF_SIZE 1024
@@ -88,8 +89,14 @@ int main(){
 
         switch (state) {
         case START:
+        /*
+        Choices at START stage 
+        1. Login
+        2. Quit
+        */
             if (strcmp(token, LOGIN_CMD) == 0) {
                 
+                // Get all the input from the client
                 token = strtok(NULL, " ");
                 if (token == NULL) {
                     printf("Not enough arguments.\n");
@@ -167,6 +174,36 @@ int main(){
             break;
 
         case LOGIN: 
+        /*
+        Choices at this stage:
+        1. Logout
+        2. Join
+        3. Create
+        4. Quit
+        */
+            // if (strcmp(token, LOGOUT_CMD) == 0) {
+
+            //     // Create a exit message
+            //     client_message.type = TYPE_EXIT;
+            //     strcpy(client_message.data, NULL);
+            //     client_message.size = sizeof(client_message.data);
+            //     strcpy(client_message.source, USER_ID);
+
+            //     // Send the message to server
+            //     if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(client_message)) {
+            //         perror("Send error!\n");
+            //         exit(1);
+            //     }
+
+            // } else if (strcmp(token, JOINSESSION_CMD) == 0) {
+
+            //     // Get the session id
+            //     token = strtok(NULL, " ");
+            //     int session_id = atoi(token);
+            // }
+
+
+
             printf("Arrived at login!\n");
             break;
 
@@ -180,18 +217,19 @@ void *recv_login(void * arg) {
     pthread_arg_t *arguments = (pthread_arg_t*) arg;
     Message server_message;
 
+    while (1) {
+        if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+            perror("Read error!\n");
+            exit(1);
+        }
 
-    if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-        perror("Read error!\n");
-        exit(1);
+        if (server_message.type == TYPE_LO_ACK) {
+            printf("You are logged in!\n");
+            state = LOGIN;
+        } else if (server_message.type == TYPE_LO_NACK) {
+            printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
+        }   
     }
-
-    if (server_message.type == TYPE_LO_ACK) {
-        printf("You are logged in!\n");
-        state = LOGIN;
-    } else if (server_message.type == TYPE_LO_NACK) {
-        printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
-    }   
     
     return NULL;
 }
