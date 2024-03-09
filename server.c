@@ -10,11 +10,24 @@
 #include <netdb.h>
 #include <signal.h>
 #include <pthread.h>
-
-// Part of the code is cited from https://beej.us/guide/bgnet/
+#include "server.h"
 
 #define BACKLOG 10  //Max amount of backlog for listen
 
+typedef struct client{
+    char username[100];
+    char password[100];
+}Client;
+
+typedef struct pthread_client_info{
+    int client_sock_fd;
+    struct addrinfo client_address;
+    int size;
+}pthread_client_arg;
+
+// Part of the code is cited from https://beej.us/guide/bgnet/
+
+//Function declarations
 void signal_setup(int sock_fd);
 void pthread_setup(pthread_attr_t pthread_attr);
 
@@ -66,10 +79,10 @@ int main(int argc, char *argv[]){
     signal_setup(sock_fd);
 
     pthread_attr_t pthread_attr;
-    //pthread_client_arg_t *pthread_arg;
+    pthread_client_arg *pthread_arg;
     pthread_t pthread;
-    socklen_t client_address_len;
     pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
+    socklen_t client_address_len;
 
     //Init pthread param
     pthread_setup(pthread_attr);
