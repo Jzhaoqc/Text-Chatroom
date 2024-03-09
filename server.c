@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,6 +20,8 @@ typedef struct client{
     char password[100];
 }Client;
 
+Client clients[3] = { {"user1", "123"}, {"user2", "123"}, {"user3", "123"} };
+
 typedef struct pthread_client_info{
     int client_sock_fd;
     struct addrinfo client_address;
@@ -29,6 +32,7 @@ typedef struct pthread_client_info{
 
 //Function declarations
 void signal_setup(int sock_fd);
+void signal_handler(int signal);
 void pthread_setup(pthread_attr_t pthread_attr);
 void client_routine(void* arg);
 
@@ -117,7 +121,102 @@ int main(int argc, char *argv[]){
 }
 
 void client_routine(void* arg){
-    User user
+    User user;
+    pthread_client_arg *pthread_arg = (pthread_client_arg*) arg;
+
+    int client_sock_fd = pthread_arg->client_sock_fd;
+    struct addrinfo client_address = pthread_arg->client_address;
+    int queue_id;
+    int n;
+
+    char* client_id;
+    char* password;
+
+    user.sock_id = pthread_arg->client_sock_fd;
+    user.status = LOGOUT;
+
+    Message recv_message, reply_message;
+
+    bool loop = true;
+    while(loop){
+
+        //Reset receive message and reply message
+        memset(&recv_message, 0, sizeof Message);
+        memset(&reply_message, 0, sizeof Message);
+
+        n = read(client_sock_fd, &recv_message, sizeof Message);
+        if(n < 0){
+            perror("ERROR: server read\n");
+            exit(EXIT_FAILURE);
+        }
+        else if(n == 0){
+            /*need implementation*/
+            delete_user(&user);
+        }
+        else if(n != sizeof Message){
+            perror("WARNING: Message wrong size\n");
+            continue;
+        }
+        else{
+
+            //User log in log out
+            switch (user.status){
+                
+                case LOGOUT:
+                    
+                    //Check login credential
+                    switch (recv_message.type){
+                        
+                        case TYPE_LOGIN:
+                            //Extract source information
+                            client_id = recv_message.source;
+                            password = recv_message.data;
+                            printf("Client ID: %s, Password: %s\n", client_id, password);
+
+                            //Check if user exist
+                            bool user_exists = false;
+                            for(int i=0; i<3; i++){
+                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, password)==0)){
+                                    user_exists = true;
+                                    break;
+                                }
+                            }
+                            
+                            //Construct response message
+                            if(user_exists){
+                                reply_message.type = TYPE_LO_ACK;
+                                user.status = LOGIN;
+                            }else{
+                                reply_message.type = TYPE_LO_NACK;
+                                reply_message.data = "Invalid user name or password\n";
+                            }
+
+                            write(client_sock_fd, &reply_message, sizeof Message);
+                        break:
+
+                        default:
+                            reply_message.type = TYPE_LO_NACK;
+                            reply_message.data = "ERROR: user login switch defaulting\n";
+                            write(client_sock_fd, &reply_message, sizeof Message);
+                        break;
+                    }
+                break;
+
+
+                case LOGIN:
+                break;
+                
+
+                default:
+                    perror("ERROR: user status switch defaulting\n");
+                break;
+            }
+
+
+
+        }
+
+    }
 }
 
 void signal_setup(int sock_fd){
