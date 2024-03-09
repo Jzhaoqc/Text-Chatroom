@@ -10,7 +10,7 @@
 #include <netdb.h>
 #include <signal.h>
 #include <pthread.h>
-#include "server.h"
+#include "chatroom.h"
 
 #define BACKLOG 10  //Max amount of backlog for listen
 
@@ -30,6 +30,7 @@ typedef struct pthread_client_info{
 //Function declarations
 void signal_setup(int sock_fd);
 void pthread_setup(pthread_attr_t pthread_attr);
+void client_routine(void* arg);
 
 int main(int argc, char *argv[]){
     
@@ -87,8 +88,36 @@ int main(int argc, char *argv[]){
     //Init pthread param
     pthread_setup(pthread_attr);
 
+    while(1){
+
+        pthread_arg = (pthread_client_arg*) malloc(sizeof pthread_client_arg);
+        if(pthread_arg == NULL){
+            perror("ERROR: server pthread_client_arg MALLOC\n");
+            continue;
+        }
+
+        //Accept new connection
+        if((new_sock_fd = accept(sock_fd, (struct sockaddr*)&pthread_arg->client_address, &client_address_len)) == -1){
+            free(pthread_arg);
+            perror("ERROR: server accept\n");
+            continue;
+        }
+
+        pthread_arg->client_sock_fd = new_sock_fd;
+
+        if(pthread_create(&pthread,&pthread_attr, &client_routine, pthread_arg) != 0){
+            free(pthread_arg);
+            perror("ERROR: server pthread_create\n");
+            continue;
+        }
+
+    }
 
     return 0;
+}
+
+void client_routine(void* arg){
+    User user
 }
 
 void signal_setup(int sock_fd){
