@@ -27,7 +27,7 @@
 typedef struct message{
     unsigned int type;
     unsigned int size;
-    unsigned char source[100];
+    unsigned char source[1024];
     unsigned char data[1024];
 }Message;
 

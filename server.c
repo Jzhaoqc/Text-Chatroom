@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
 
         pthread_arg->client_sock_fd = new_sock_fd;
 
-        if(pthread_create(&pthread,&pthread_attr, &client_routine, pthread_arg) != 0){
+        if(pthread_create(&pthread, NULL, (void *) &client_routine, pthread_arg) != 0){
             free(pthread_arg);
             perror("ERROR: server pthread_create\n");
             continue;
@@ -130,7 +130,7 @@ void client_routine(void* arg){
     int n;
 
     char* client_id;
-    char* password;
+    char* client_password;
 
     user.sock_id = pthread_arg->client_sock_fd;
     user.status = LOGOUT;
@@ -170,13 +170,13 @@ void client_routine(void* arg){
                         case TYPE_LOGIN:
                             //Extract source information
                             client_id = (char*) recv_message.source;
-                            password = (char*) recv_message.data;
-                            printf("Client ID: %s, Password: %s\n", client_id, password);
+                            client_password = (char*) recv_message.data;
+                            printf("Client ID: %s, Password: %s\n", client_id, client_password);
 
                             //Check if user exist
                             bool user_exists = false;
                             for(int i=0; i<3; i++){
-                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, password)==0)){
+                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
                                     user_exists = true;
                                     break;
                                 }
@@ -189,17 +189,24 @@ void client_routine(void* arg){
                             }else{
                                 char* msg = "Invalid user name or password\n";
                                 reply_message.type = TYPE_LO_NACK;
-                                memcpy(reply_message.data,msg,100);
+                                reply_message.size = sizeof(msg);
+                                strcpy(reply_message.data,msg);
                             }
+
+                            // printf("%d\n",reply_message.type);
+                            // printf("%d\n",reply_message.size);
+                            // printf("%s\n",reply_message.source);
+                            // printf("%s\n",reply_message.data);
 
                             write(client_sock_fd, &reply_message, sizeof (Message));
                         break;
 
-                        default:
-                            // char* msg = "ERROR: user login switch defaulting\n";
-                            // reply_message.type = TYPE_LO_NACK;
-                            // memcpy(reply_message.data,msg,100);
-                            // write(client_sock_fd, &reply_message, sizeof (Message));
+                        default: ;
+                            char* msg = "ERROR: user login switch defaulting\n";
+                            reply_message.type = TYPE_LO_NACK;
+                            reply_message.size = sizeof(msg);
+                            strcpy(reply_message.data,msg);
+                            write(client_sock_fd, &reply_message, sizeof (Message));
                         break;
                     }
                 break;
