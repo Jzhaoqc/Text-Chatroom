@@ -38,7 +38,7 @@ typedef struct user{
     int status;
 }User;
 
-void delete_user(&user);
+void delete_user(User* user);
 void query(char buff[]);
 
 #endif

@@ -249,6 +249,28 @@ void client_routine(void* arg){
                         break;
 
 
+                        //User join
+                        case TYPE_JOIN:
+
+                        break;
+                    }
+                break;
+                
+
+                case JOINED:
+                    switch(recv_message.type){
+                        
+                        //User querying active users
+                        case TYPE_QUERY:
+                            query(data_buff);
+                            reply_message.type = TYPE_QU_ACK;
+                            reply_message.size = sizeof(data_buff);
+                            strcpy(reply_message.data, data_buff);
+
+                            write(client_sock_fd, &reply_message, sizeof(Message));
+                        break;
+
+
                         //User message
                         case TYPE_MESSAGE:
                             
@@ -259,15 +281,9 @@ void client_routine(void* arg){
                         case TYPE_LEAVE_SESS:
 
                         break;
-
-
-                        //User join
-                        case TYPE_JOIN:
-
-                        break;
                     }
                 break;
-                
+
 
                 default:
                     perror("ERROR: user status switch defaulting\n");
