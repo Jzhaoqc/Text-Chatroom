@@ -1,13 +1,3 @@
-# CC=gcc
-# LDFLAGS=-pthread
-
-# all: server client
-# server: server.o
-# client: client.o
-
-# clean:
-# 	rm -f *.o server client
-
 # Makefile for compiling client.c and server.c
 
 CC=gcc                # Compiler to use
@@ -25,7 +15,7 @@ server: server.o
 client.o: client.c
 	$(CC) $(CFLAGS) -c client.c
 
-server.o: server.c
+server.o: server.c chatroom.h
 	$(CC) $(CFLAGS) -c server.c
 
 clean:
