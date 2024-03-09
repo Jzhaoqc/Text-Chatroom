@@ -43,5 +43,6 @@ void delete_user(User* user);
 void query(char buff[]);
 bool join_user(User* user, char session_id[]);
 void create_chatroom(char session_id[]);
+void send_message(Message* recv_message);
 
 #endif

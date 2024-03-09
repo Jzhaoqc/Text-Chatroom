@@ -297,15 +297,26 @@ void client_routine(void* arg){
 
                         //User message
                         case TYPE_MESSAGE:
-                            
+                            send_message(&recv_message);
                         break;
 
 
                         //User leave session
                         case TYPE_LEAVE_SESS:
                             strcpy(session_id, recv_message.data);
-                            
+                            delete_user(&user);
+                            user.status = LOGIN;
 
+                            printf("User: %s left session: %s.\n", user.username, session_id);
+                        break;
+
+
+                        //User leave server
+                        case TYPE_EXIT:
+                            printf("User %s just exited from server\n", user.username);
+                            delete_user(&user);
+                            close(client_sock_fd);
+                            loop = false;
                         break;
                     }
                 break;
