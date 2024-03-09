@@ -181,7 +181,8 @@ void client_routine(void* arg){
                                 if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
                                     user_exists = true;
                                     user.status = LOGIN;
-                                    user.username = clients[i].username;
+                                    strcpy(user.username, clients[i].username); // Changed to strcpy
+                                    
                                     break;
                                 }
                             }

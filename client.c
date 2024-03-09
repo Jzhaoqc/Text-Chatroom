@@ -67,6 +67,8 @@ int main(){
     int USER_PORT;
 
     Message client_message;
+    int sock_fd;
+    struct sockaddr_in server_addr;
 
     pthread_arg_t *recv_thread_arg;
     pthread_t recv_thread;
@@ -76,9 +78,6 @@ int main(){
 
         char *token;
         char USER_INPUT[BUF_SIZE];
-
-        int sock_fd;
-        struct sockaddr_in server_addr;
 
         if (fgets(USER_INPUT, sizeof(USER_INPUT), stdin) == NULL) {
             perror("Input error!\n");
@@ -125,7 +124,7 @@ int main(){
                 }
                 USER_PORT = atoi(token);
 
-                printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
+                //printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
 
                 // Create client message
                 client_message.type = TYPE_LOGIN;
@@ -143,30 +142,33 @@ int main(){
                 server_addr.sin_port = htons(USER_PORT);
                 server_addr.sin_addr.s_addr = inet_addr(USER_IP);
 
-                printf("Before Connect\n");
+                
                 // Connect to server
                 if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
                     perror("TCP connection error!\n");
                     exit(1);
                 }
-                printf("Connected\n");
+                printf("pre reached\n");
+                strcpy(recv_thread_arg->clientID, USER_ID);
+                recv_thread_arg->socket_fd = sock_fd;
+                printf("reached\n");
                 // Create thread to listen for server reply
                 if (pthread_create(&recv_thread, NULL, &recv_login, (void *) recv_thread_arg) != 0){
                     perror("pthread create error!\n");
                     exit(1);
                 }
-                printf("Created\n");
+                
                 if (pthread_detach(recv_thread) != 0) {
                     perror("detach error!\n");
                     exit(1);
                 }
                 
                 // Send the message to server
-                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(client_message)) {
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
                     perror("Send error!\n");
                     exit(1);
                 }
-                printf("Sent\n");
+                printf("User Message Sent!\n");
                 
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -223,6 +225,7 @@ void *recv_login(void * arg) {
     while (1) {
         if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
             perror("Read error!\n");
+            printf("error\n");
             exit(1);
         }
         printf("Read\n");
