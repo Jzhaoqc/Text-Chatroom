@@ -27,12 +27,14 @@
 typedef struct message{
     unsigned int type;
     unsigned int size;
-    unsigned char source[100];
+    unsigned char source[1024];
     unsigned char data[1024];
 }Message;
 
 typedef struct user{
     char username[100];
-    int sock_id;
+    int sock_fd;
     int status;
 }User;
+
+#endif

@@ -10,13 +10,13 @@ client: client.o
 	$(CC) $(CFLAGS) client.o -o client -lpthread
 
 server: server.o
-	$(CC) $(CFLAGS) server.o -o server
+	$(CC) $(CFLAGS) server.o -o server -lpthread
 
 client.o: client.c
 	$(CC) $(CFLAGS) -c client.c
 
 server.o: server.c chatroom.h
-	$(CC) $(CFLAGS) -c server.c
+	$(CC) $(CFLAGS) -c server.c 
 
 clean:
 	rm -f $(TARGETS) *.o
