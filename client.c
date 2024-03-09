@@ -125,7 +125,7 @@ int main(){
                 }
                 USER_PORT = atoi(token);
 
-                //printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
+                printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
 
                 // Create client message
                 client_message.type = TYPE_LOGIN;
@@ -143,17 +143,19 @@ int main(){
                 server_addr.sin_port = htons(USER_PORT);
                 server_addr.sin_addr.s_addr = inet_addr(USER_IP);
 
+                printf("Before Connect\n");
                 // Connect to server
                 if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
                     perror("TCP connection error!\n");
                     exit(1);
                 }
-                
+                printf("Connected\n");
                 // Create thread to listen for server reply
                 if (pthread_create(&recv_thread, NULL, &recv_login, (void *) recv_thread_arg) != 0){
                     perror("pthread create error!\n");
                     exit(1);
                 }
+                printf("Created\n");
                 if (pthread_detach(recv_thread) != 0) {
                     perror("detach error!\n");
                     exit(1);
@@ -164,6 +166,7 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                printf("Sent\n");
                 
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -222,7 +225,7 @@ void *recv_login(void * arg) {
             perror("Read error!\n");
             exit(1);
         }
-
+        printf("Read\n");
         if (server_message.type == TYPE_LO_ACK) {
             printf("You are logged in!\n");
             state = LOGIN;
