@@ -137,6 +137,8 @@ void client_routine(void* arg){
 
     Message recv_message, reply_message;
     char data_buff[1024];
+    char session_id[1024];
+    bool can_join = false;
 
     bool loop = true;
     while(loop){
@@ -145,6 +147,7 @@ void client_routine(void* arg){
         memset(&recv_message, 0, sizeof (Message));
         memset(&reply_message, 0, sizeof (Message));
         memset(data_buff, 0, 1024);
+        memset(session_id, 0, 1024);
 
         n = read(client_sock_fd, &recv_message, sizeof (Message));
         if(n < 0){
@@ -245,13 +248,34 @@ void client_routine(void* arg){
 
                         //User new session
                         case TYPE_NEW_SESS:
+                            strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
+                            create_chatroom(session_id);
+                            recv_message.type = TYPE_NS_ACK;
 
+                            write(client_sock_fd, &reply_message, sizeof(Message));
+                            printf("New session: %s, created.\n", session_id);
                         break;
 
 
                         //User join
                         case TYPE_JOIN:
 
+                            //Get session id and join user
+                            strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
+                            can_join = join_user(&user, session_id);
+                            if(can_join){
+                                user.status = JOINED;
+                                recv_message.type = TYPE_JN_ACK;
+                                recv_message.size = strlen(session_id);
+                                strcpy(recv_message.data,session_id);
+                            }else{
+                                recv_message.type = TYPE_JN_NACK;
+                                strcpy(recv_message.data, "ERROR: unable to join, invalid session ID.\n");
+                                recv_message.size = strlen("ERROR: unable to join, invalid session ID.\n");
+                            }
+                            write(client_sock_fd, &recv_message, sizeof(Message));
+
+                            printf("User: %s joined %s", user.username, session_id);
                         break;
                     }
                 break;
@@ -279,6 +303,8 @@ void client_routine(void* arg){
 
                         //User leave session
                         case TYPE_LEAVE_SESS:
+                            strcpy(session_id, recv_message.data);
+                            
 
                         break;
                     }

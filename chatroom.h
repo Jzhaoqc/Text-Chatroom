@@ -3,6 +3,7 @@
 
 #include "stdio.h"
 #include "pthread.h"
+#include "stdbool.h"
 
 //User status
 #define LOGOUT 0
@@ -40,5 +41,7 @@ typedef struct user{
 
 void delete_user(User* user);
 void query(char buff[]);
+bool join_user(User* user, char session_id[]);
+void create_chatroom(char session_id[]);
 
 #endif
