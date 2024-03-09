@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,13 +11,30 @@
 #include <netdb.h>
 #include <signal.h>
 #include <pthread.h>
-
-// Part of the code is cited from https://beej.us/guide/bgnet/
+#include "chatroom.h"
 
 #define BACKLOG 10  //Max amount of backlog for listen
 
+typedef struct client{
+    char username[100];
+    char password[100];
+}Client;
+
+Client clients[3] = { {"user1", "123"}, {"user2", "123"}, {"user3", "123"} };
+
+typedef struct pthread_client_info{
+    int client_sock_fd;
+    struct addrinfo client_address;
+    int size;
+}pthread_client_arg;
+
+// Part of the code is cited from https://beej.us/guide/bgnet/
+
+//Function declarations
 void signal_setup(int sock_fd);
+void signal_handler(int signal);
 void pthread_setup(pthread_attr_t pthread_attr);
+void client_routine(void* arg);
 
 int main(int argc, char *argv[]){
     
@@ -66,16 +84,139 @@ int main(int argc, char *argv[]){
     signal_setup(sock_fd);
 
     pthread_attr_t pthread_attr;
-    //pthread_client_arg_t *pthread_arg;
+    pthread_client_arg *pthread_arg;
     pthread_t pthread;
-    socklen_t client_address_len;
     pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
+    socklen_t client_address_len;
 
     //Init pthread param
     pthread_setup(pthread_attr);
 
+    while(1){
+
+        pthread_arg = (pthread_client_arg*) malloc(sizeof pthread_client_arg);
+        if(pthread_arg == NULL){
+            perror("ERROR: server pthread_client_arg MALLOC\n");
+            continue;
+        }
+
+        //Accept new connection
+        if((new_sock_fd = accept(sock_fd, (struct sockaddr*)&pthread_arg->client_address, &client_address_len)) == -1){
+            free(pthread_arg);
+            perror("ERROR: server accept\n");
+            continue;
+        }
+
+        pthread_arg->client_sock_fd = new_sock_fd;
+
+        if(pthread_create(&pthread,&pthread_attr, &client_routine, pthread_arg) != 0){
+            free(pthread_arg);
+            perror("ERROR: server pthread_create\n");
+            continue;
+        }
+
+    }
 
     return 0;
+}
+
+void client_routine(void* arg){
+    User user;
+    pthread_client_arg *pthread_arg = (pthread_client_arg*) arg;
+
+    int client_sock_fd = pthread_arg->client_sock_fd;
+    struct addrinfo client_address = pthread_arg->client_address;
+    int queue_id;
+    int n;
+
+    char* client_id;
+    char* password;
+
+    user.sock_id = pthread_arg->client_sock_fd;
+    user.status = LOGOUT;
+
+    Message recv_message, reply_message;
+
+    bool loop = true;
+    while(loop){
+
+        //Reset receive message and reply message
+        memset(&recv_message, 0, sizeof Message);
+        memset(&reply_message, 0, sizeof Message);
+
+        n = read(client_sock_fd, &recv_message, sizeof Message);
+        if(n < 0){
+            perror("ERROR: server read\n");
+            exit(EXIT_FAILURE);
+        }
+        else if(n == 0){
+            /*need implementation*/
+            delete_user(&user);
+        }
+        else if(n != sizeof Message){
+            perror("WARNING: Message wrong size\n");
+            continue;
+        }
+        else{
+
+            //User log in log out
+            switch (user.status){
+                
+                case LOGOUT:
+                    
+                    //Check login credential
+                    switch (recv_message.type){
+                        
+                        case TYPE_LOGIN:
+                            //Extract source information
+                            client_id = recv_message.source;
+                            password = recv_message.data;
+                            printf("Client ID: %s, Password: %s\n", client_id, password);
+
+                            //Check if user exist
+                            bool user_exists = false;
+                            for(int i=0; i<3; i++){
+                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, password)==0)){
+                                    user_exists = true;
+                                    break;
+                                }
+                            }
+                            
+                            //Construct response message
+                            if(user_exists){
+                                reply_message.type = TYPE_LO_ACK;
+                                user.status = LOGIN;
+                            }else{
+                                reply_message.type = TYPE_LO_NACK;
+                                reply_message.data = "Invalid user name or password\n";
+                            }
+
+                            write(client_sock_fd, &reply_message, sizeof Message);
+                        break:
+
+                        default:
+                            reply_message.type = TYPE_LO_NACK;
+                            reply_message.data = "ERROR: user login switch defaulting\n";
+                            write(client_sock_fd, &reply_message, sizeof Message);
+                        break;
+                    }
+                break;
+
+
+                case LOGIN:
+                break;
+                
+
+                default:
+                    perror("ERROR: user status switch defaulting\n");
+                break;
+            }
+
+
+
+        }
+
+    }
 }
 
 void signal_setup(int sock_fd){
