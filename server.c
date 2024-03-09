@@ -136,6 +136,7 @@ void client_routine(void* arg){
     user.status = LOGOUT;
 
     Message recv_message, reply_message;
+    char data_buff[1024];
 
     bool loop = true;
     while(loop){
@@ -143,6 +144,7 @@ void client_routine(void* arg){
         //Reset receive message and reply message
         memset(&recv_message, 0, sizeof (Message));
         memset(&reply_message, 0, sizeof (Message));
+        memset(data_buff, 0, 1024);
 
         n = read(client_sock_fd, &recv_message, sizeof (Message));
         if(n < 0){
@@ -150,8 +152,7 @@ void client_routine(void* arg){
             exit(EXIT_FAILURE);
         }
         else if(n == 0){
-            /*need implementation*/
-            //delete_user(&user);
+            delete_user(&user);
         }
         else if(n != sizeof (Message)){
             perror("WARNING: Message wrong size\n");
@@ -181,8 +182,12 @@ void client_routine(void* arg){
                                 if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
                                     user_exists = true;
                                     user.status = LOGIN;
+<<<<<<< HEAD
                                     strcpy(user.username, clients[i].username); // Changed to strcpy
                                     
+=======
+                                    strcpy(user.username, clients[i].username);
+>>>>>>> 5e4ff90319f1e73283fd6d16ab8a623f8f3529cc
                                     break;
                                 }
                             }
@@ -190,6 +195,9 @@ void client_routine(void* arg){
                             //Construct response message
                             if(user_exists){
                                 reply_message.type = TYPE_LO_ACK;
+                                reply_message.size = 0;
+                                strcpy(reply_message.data,"0");
+                                strcpy(reply_message.source,"0");
                             }else{
                                 char* msg = "Invalid user name or password\n";
                                 reply_message.type = TYPE_LO_NACK;
@@ -223,9 +231,44 @@ void client_routine(void* arg){
                         //User exit
                         case TYPE_EXIT:
                             printf("User %s just exited from server\n", user.username);
-                            //delete_user(&user);
+                            delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
+                        break;
+
+
+                        //User querying active users
+                        case TYPE_QUERY:
+                            query(data_buff);
+                            reply_message.type = TYPE_QU_ACK;
+                            reply_message.size = sizeof(data_buff);
+                            strcpy(reply_message.data, data_buff);
+
+                            write(client_sock_fd, &reply_message, sizeof(Message));
+                        break;
+
+
+                        //User new session
+                        case TYPE_NEW_SESS:
+
+                        break;
+
+
+                        //User message
+                        case TYPE_MESSAGE:
+                            
+                        break;
+
+
+                        //User leave session
+                        case TYPE_LEAVE_SESS:
+
+                        break;
+
+
+                        //User join
+                        case TYPE_JOIN:
+
                         break;
                     }
                 break;

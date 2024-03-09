@@ -7,6 +7,7 @@
 //User status
 #define LOGOUT 0
 #define LOGIN 1
+#define JOINED 2
 
 //Message status
 #define TYPE_LOGIN 1
@@ -36,5 +37,8 @@ typedef struct user{
     int sock_fd;
     int status;
 }User;
+
+void delete_user(&user);
+void query(char buff[]);
 
 #endif
