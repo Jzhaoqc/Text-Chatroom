@@ -39,6 +39,29 @@ typedef struct user{
     int status;
 }User;
 
+typedef struct member{
+    User user;
+    bool is_owner;
+    struct member* prev;
+    struct member* next;
+}Member;
+
+typedef struct chat_room{
+    Member* first_node;
+    int num_in_room;
+    char room_name[1024];
+    struct chat_room* prev;
+    struct chat_room* next;
+}Chatroom;
+
+typedef struct chatroomlist{
+    Chatroom* first_node;
+}Chatroom_List;
+
+
+extern Chatroom_List* room_list_global;
+extern pthread_mutex_t mux;
+
 void delete_user(User* user);
 void query(char buff[]);
 bool join_user(User* user, char session_id[]);
