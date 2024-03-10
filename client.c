@@ -42,6 +42,7 @@ const char *QUIT_CMD = "/quit";
 // Client State
 int state = START;
 int current_type;
+int threadLoop;
 
 // Struct
 typedef struct Message {
@@ -58,7 +59,7 @@ typedef struct pthread_arg_t {
 
 void *recv_login(void * arg);
 
-// /login user1 123 128.100.13.166 55000
+// /login user1 123 128.100.13.166 123456
 
 int main(){
 
@@ -131,11 +132,8 @@ int main(){
 
                 //printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
 
-                // Change type for reading ACK
-                current_type = TYPE_LOGIN;
-
                 // Create client message
-                client_message.type = current_type;
+                client_message.type = TYPE_LOGIN;
                 client_message.size = strlen(USER_PWD);
                 strcpy(client_message.data, USER_PWD);
                 strcpy(client_message.source, USER_ID);
@@ -160,6 +158,7 @@ int main(){
 
                 strcpy(recv_thread_arg->clientID, USER_ID);
                 recv_thread_arg->socket_fd = sock_fd;
+                threadLoop = true;
                 
                 // Create thread to listen for server reply
                 if (pthread_create(&recv_thread, NULL, recv_login, (void *) recv_thread_arg) != 0){
@@ -177,6 +176,9 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                // Change type for reading ACK
+                current_type = TYPE_LOGIN;
+
                 printf("User Message Sent!\n");
                 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -195,6 +197,8 @@ int main(){
         4. Quit
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
+                
+                threadLoop = false;
 
                 // Create a exit message
                 client_message.type = TYPE_EXIT;
@@ -215,12 +219,9 @@ int main(){
                 // Get the session id
                 token = strtok(NULL, " ");
                 char *session_id = token;
-
-                // Change type for reading ACK
-                current_type = TYPE_JOIN;
                 
                 // Create client message
-                client_message.type = current_type;
+                client_message.type = TYPE_JOIN;
                 strcpy(client_message.source, USER_ID);
                 strcpy(client_message.data, session_id);
                 client_message.size = sizeof(client_message.data);
@@ -230,19 +231,20 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                // Change type for reading ACK
+                current_type = TYPE_JOIN;
                 printf("Message sent!\n");
 
             } else if (strcmp(token, CREATESESSION_CMD) == 0) {
 
+                
+
                 // Get the session id
                 token = strtok(NULL, " ");
                 char *session_id = token;
-
-                // Change type for reading ACK
-                current_type = TYPE_NEW_SESS;
                 
                 // Create client message
-                client_message.type = current_type;
+                client_message.type = TYPE_NEW_SESS;
                 strcpy(client_message.source, USER_ID);
                 strcpy(client_message.data, session_id);
                 client_message.size = sizeof(client_message.data);
@@ -252,14 +254,13 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                // Change type for reading ACK
+                current_type = TYPE_NEW_SESS;
                 printf("Message sent!\n");
 
             } else if (strcmp(token, LIST_CMD) == 0) {
 
-                // Create client message
-                current_type = TYPE_QUERY;
-
-                client_message.type = current_type;
+                client_message.type = TYPE_QUERY;
                 strcpy(client_message.source, USER_ID);
                 client_message.size = sizeof(client_message.data);
 
@@ -268,6 +269,8 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                // Create client message
+                current_type = TYPE_QUERY;
                 printf("Message sent!\n");
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -286,6 +289,8 @@ int main(){
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
 
+                threadLoop = false;
+
                 // Create a exit message
                 client_message.type = TYPE_EXIT;
                 strcpy(client_message.source, USER_ID);
@@ -297,6 +302,7 @@ int main(){
                 }
                 printf("Message sent!\n");
                 state = START;
+                
                 printf("You have logged out, please re-login.\n");
 
             } else if (strcmp(token, LEAVESESSION_CMD) == 0) {
@@ -310,6 +316,7 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                
                 printf("Message sent!\n");
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -342,9 +349,11 @@ void *recv_login(void * arg) {
     pthread_arg_t *arguments = (pthread_arg_t*) arg;
     Message server_message;
 
-    while (1) {
+    while (threadLoop) {
+        memset(&server_message, 0, sizeof(Message));
         switch (current_type) {
         case TYPE_LOGIN:
+            printf("Waiting for Login ACK\n");
             if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
                 perror("Read error!\n");
                 exit(1);
@@ -353,10 +362,10 @@ void *recv_login(void * arg) {
             if (server_message.type == TYPE_LO_ACK) {
                 printf("You are logged in!\n");
                 state = LOGIN;
-                current_type = -1;
             } else if (server_message.type == TYPE_LO_NACK) {
                 printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
             }   
+            current_type = -1;
             break;
 
         case TYPE_JOIN:
@@ -368,25 +377,30 @@ void *recv_login(void * arg) {
             if (server_message.type == TYPE_JN_ACK) {
                 printf("You have joined session: %s!\n", server_message.data);
                 state = JOINED;
-                current_type = -1;
             } else if (server_message.type == TYPE_JN_NACK) {
                 char *session = strtok(server_message.data, " ");
                 char *reason = strtok(NULL, " ");
                 printf("Join failed for session %s due to: %s\n", session, reason);
             }   
+            current_type = -1;
             break;
         
         case TYPE_NEW_SESS:
+            printf("In NEW SESS\n");
             if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
                 perror("Read error!\n");
                 exit(1);
             }
+            printf("type = %d\n", server_message.type);
+            printf("data = %s\n", server_message.data);
+            printf("size = %d\n", server_message.size);
+
 
             if (server_message.type == TYPE_NS_ACK) {
                 printf("You have created and joined session: %s!\n", server_message.data);
                 state = JOINED;
-                current_type = -1;
             }
+            current_type = -1;
             break;
 
         case TYPE_QUERY:
@@ -398,9 +412,12 @@ void *recv_login(void * arg) {
             if (server_message.type == TYPE_QU_ACK) {
                 printf("List of Users and Sessions: \n%s", server_message.data);
             }
-
+            current_type = -1;
+            break;
         }
     }
-    
+    printf("thread exiting\n");
     return NULL;
 }
+
+// /login user1 123 128.100.13.166 123454
