@@ -46,6 +46,7 @@ typedef struct member{
     struct member* next;
 }Member;
 
+
 typedef struct chat_room{
     Member* first_node;
     int num_in_room;
@@ -63,9 +64,9 @@ extern Chatroom_List* room_list_global;
 extern pthread_mutex_t* mux;
 
 void delete_user(User* user);
-void query(char buff[]);
-bool join_user(User* user, char session_id[]);
-void create_chatroom(char session_id[]);
-void send_message(Message* recv_message);
+void query(char buff[]); //travers 2D linked list
+bool join_user(User* user, char session_id[]);  //check session exit, if so add user as member to chatroom
+void create_chatroom(char session_id[]);    //create chatroom node, add to big list
+void send_message(Message* recv_message);   //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
 
 #endif

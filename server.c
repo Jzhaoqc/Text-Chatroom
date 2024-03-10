@@ -256,14 +256,15 @@ void client_routine(void* arg){
                             //create_chatroom(session_id);
 
                             strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
-                            recv_message.size = sizeof(session_id);
-                            recv_message.type = TYPE_NS_ACK;
+                            reply_message.size = sizeof(session_id);
+                            reply_message.type = TYPE_NS_ACK;
+                            strcpy(reply_message.data,session_id);
 
-                            printf("data: %s\n", recv_message.data);
-                            printf("size: %d\n", recv_message.size);
-                            printf("type: %d\n", recv_message.type);
+                            printf("data: %s\n", reply_message.data);
+                            printf("size: %d\n", reply_message.size);
+                            printf("type: %d\n", reply_message.type);
 
-                            send(client_sock_fd, &reply_message, sizeof (Message),0);
+                            write(client_sock_fd, &reply_message, sizeof (Message));
                             printf("    New session: %s, created.\n", session_id);
                         break;
 
@@ -278,18 +279,18 @@ void client_routine(void* arg){
                             //can_join = join_user(&user, session_id);
                             if(can_join){
                                 user.status = JOINED;
-                                recv_message.type = TYPE_JN_ACK;
-                                recv_message.size = strlen(session_id);
-                                strcpy(recv_message.data,session_id);
+                                reply_message.type = TYPE_JN_ACK;
+                                reply_message.size = strlen(session_id);
+                                strcpy(reply_message.data,session_id);
                                 printf("    User: %s joined %s.\n", user.username, session_id);
                             }else{
                                 printf("    User: %s failed to joined %s.\n", user.username, session_id);
-                                recv_message.type = TYPE_JN_NACK;
+                                reply_message.type = TYPE_JN_NACK;
                                 strcat(session_id, ", ERROR: unable to join, invalid session ID.\n");
-                                strcpy(recv_message.data, session_id);
-                                recv_message.size = strlen(session_id);
+                                strcpy(reply_message.data, session_id);
+                                reply_message.size = strlen(session_id);
                             }
-                            write(client_sock_fd, &recv_message, sizeof(Message));
+                            write(client_sock_fd, &reply_message, sizeof(Message));
                         break;
                     }
                 break;
@@ -378,18 +379,5 @@ void signal_setup(int sock_fd){
 
 void signal_handler(int signal){
     exit(EXIT_FAILURE);
-    
+
 }
-
-// void pthread_setup(pthread_attr_t pthread_attr){
-//     //Set up pthread parameter for detached threads
-//     if (pthread_attr_init(&pthread_attr) != 0) {
-//         perror("pthread_attr_init");
-//         exit(1);
-//     }
-//     if (pthread_attr_setdetachstate(&pthread_attr, PTHREAD_CREATE_DETACHED) != 0) {
-//         perror("pthread_attr_setdetachstate");
-//         exit(1);
-//     }
-
-// }
