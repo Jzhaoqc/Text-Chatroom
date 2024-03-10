@@ -33,7 +33,7 @@ typedef struct pthread_client_info{
 //Function declarations
 void signal_setup(int sock_fd);
 void signal_handler(int signal);
-void pthread_setup(pthread_attr_t pthread_attr);
+//void pthread_setup(pthread_attr_t pthread_attr);
 void client_routine(void* arg);
 
 int main(int argc, char *argv[]){
@@ -83,14 +83,14 @@ int main(int argc, char *argv[]){
     //Add signals to sighandler
     signal_setup(sock_fd);
 
-    pthread_attr_t pthread_attr;
+    //pthread_attr_t pthread_attr;
     pthread_client_arg *pthread_arg;
     pthread_t pthread;
     pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
     socklen_t client_address_len;
 
     //Init pthread param
-    pthread_setup(pthread_attr);
+    //pthread_setup(pthread_attr);
 
     while(1){
 
@@ -112,6 +112,11 @@ int main(int argc, char *argv[]){
         if(pthread_create(&pthread, NULL, (void *) &client_routine, pthread_arg) != 0){
             free(pthread_arg);
             perror("ERROR: server pthread_create\n");
+            continue;
+        }
+
+        if(pthread_detach(pthread) != 0){
+            perror("ERROR: thread pthread_detach\n");
             continue;
         }
 
@@ -174,10 +179,12 @@ void client_routine(void* arg){
                         
                         //User login
                         case TYPE_LOGIN:
+                            printf("[Server]: Received Login request.\n");
+
                             //Extract source information
                             client_id = (char*) recv_message.source;
                             client_password = (char*) recv_message.data;
-                            printf("Client ID: %s, Password: %s\n", client_id, client_password);
+                            printf("    Client ID: %s, Password: %s\n", client_id, client_password);
 
                             //Check if user exist
                             bool user_exists = false;
@@ -220,7 +227,8 @@ void client_routine(void* arg){
 
                         //User exit
                         case TYPE_EXIT:
-                            printf("User %s just exited from server\n", user.username);
+                            printf("[Server]: Received exit request.\n");
+                            printf("    User %s just exited from server\n", user.username);
                             //need implementation
                             //delete_user(&user);
                             close(client_sock_fd);
@@ -230,6 +238,7 @@ void client_routine(void* arg){
 
                         //User querying active users
                         case TYPE_QUERY:
+                            printf("[Server]: Received query request.\n");
                             //need implementation
                             //query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
@@ -242,18 +251,26 @@ void client_routine(void* arg){
 
                         //User new session
                         case TYPE_NEW_SESS:
-                            strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
+                            printf("[Server]: Received new session request.\n");
                             //need implementation
                             //create_chatroom(session_id);
+
+                            strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
+                            recv_message.size = sizeof(session_id);
                             recv_message.type = TYPE_NS_ACK;
 
-                            write(client_sock_fd, &reply_message, sizeof(Message));
-                            printf("New session: %s, created.\n", session_id);
+                            printf("data: %s\n", recv_message.data);
+                            printf("size: %d\n", recv_message.size);
+                            printf("type: %d\n", recv_message.type);
+
+                            send(client_sock_fd, &reply_message, sizeof (Message),0);
+                            printf("    New session: %s, created.\n", session_id);
                         break;
 
 
                         //User join
                         case TYPE_JOIN:
+                            printf("[Server]: Received join request.\n");
 
                             //Get session id and join user
                             strcpy(session_id,recv_message.data);
@@ -264,9 +281,9 @@ void client_routine(void* arg){
                                 recv_message.type = TYPE_JN_ACK;
                                 recv_message.size = strlen(session_id);
                                 strcpy(recv_message.data,session_id);
-                                printf("User: %s joined %s.\n", user.username, session_id);
+                                printf("    User: %s joined %s.\n", user.username, session_id);
                             }else{
-                                printf("User: %s failed to joined %s.\n", user.username, session_id);
+                                printf("    User: %s failed to joined %s.\n", user.username, session_id);
                                 recv_message.type = TYPE_JN_NACK;
                                 strcat(session_id, ", ERROR: unable to join, invalid session ID.\n");
                                 strcpy(recv_message.data, session_id);
@@ -283,6 +300,8 @@ void client_routine(void* arg){
                         
                         //User querying active users
                         case TYPE_QUERY:
+                            printf("[Server]: Received query request.\n");
+
                             //need implementation
                             //query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
@@ -302,18 +321,22 @@ void client_routine(void* arg){
 
                         //User leave session
                         case TYPE_LEAVE_SESS:
+                            printf("[Server]: Received leave session request.\n");
+
                             strcpy(session_id, recv_message.data);
                             //need implementation
                             //delete_user(&user);
                             user.status = LOGIN;
 
-                            printf("User: %s left session: %s.\n", user.username, session_id);
+                            printf("    User: %s left session: %s.\n", user.username, session_id);
                         break;
 
 
                         //User leave server
                         case TYPE_EXIT:
-                            printf("User %s just exited from server\n", user.username);
+                            printf("[Server]: Received exit request.\n");
+                        
+                            printf("    User %s just exited from server\n", user.username);
                             //need implementation
                             //delete_user(&user);
                             close(client_sock_fd);
@@ -331,8 +354,8 @@ void client_routine(void* arg){
 
 
         }
-
     }
+    printf("Thread exiting\n");
 }
 
 void signal_setup(int sock_fd){
@@ -357,15 +380,15 @@ void signal_handler(int signal){
     exit(EXIT_FAILURE);
 }
 
-void pthread_setup(pthread_attr_t pthread_attr){
-    //Set up pthread parameter for detached threads
-    if (pthread_attr_init(&pthread_attr) != 0) {
-        perror("pthread_attr_init");
-        exit(1);
-    }
-    if (pthread_attr_setdetachstate(&pthread_attr, PTHREAD_CREATE_DETACHED) != 0) {
-        perror("pthread_attr_setdetachstate");
-        exit(1);
-    }
+// void pthread_setup(pthread_attr_t pthread_attr){
+//     //Set up pthread parameter for detached threads
+//     if (pthread_attr_init(&pthread_attr) != 0) {
+//         perror("pthread_attr_init");
+//         exit(1);
+//     }
+//     if (pthread_attr_setdetachstate(&pthread_attr, PTHREAD_CREATE_DETACHED) != 0) {
+//         perror("pthread_attr_setdetachstate");
+//         exit(1);
+//     }
 
-}
+// }
