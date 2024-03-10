@@ -155,7 +155,8 @@ void client_routine(void* arg){
             exit(EXIT_FAILURE);
         }
         else if(n == 0){
-            delete_user(&user);
+            //need implementation
+            //delete_user(&user);
         }
         else if(n != sizeof (Message)){
             perror("WARNING: Message wrong size\n");
@@ -193,21 +194,12 @@ void client_routine(void* arg){
                             //Construct response message
                             if(user_exists){
                                 reply_message.type = TYPE_LO_ACK;
-                                // reply_message.size = 0;
-                                // strcpy(reply_message.data,"0");
-                                // strcpy(reply_message.source,"0");
                             }else{
                                 char* msg = "Invalid user name or password\n";
                                 reply_message.type = TYPE_LO_NACK;
                                 reply_message.size = sizeof(msg);
                                 strcpy(reply_message.data,msg);
                             }
-
-                            // printf("%d\n",reply_message.type);
-                            // printf("%d\n",reply_message.size);
-                            // printf("%s\n",reply_message.source);
-                            // printf("%s\n",reply_message.data);
-
                             write(client_sock_fd, &reply_message, sizeof (Message));
                         break;
 
@@ -229,7 +221,8 @@ void client_routine(void* arg){
                         //User exit
                         case TYPE_EXIT:
                             printf("User %s just exited from server\n", user.username);
-                            delete_user(&user);
+                            //need implementation
+                            //delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
                         break;
@@ -237,7 +230,8 @@ void client_routine(void* arg){
 
                         //User querying active users
                         case TYPE_QUERY:
-                            query(data_buff);
+                            //need implementation
+                            //query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);
@@ -249,7 +243,8 @@ void client_routine(void* arg){
                         //User new session
                         case TYPE_NEW_SESS:
                             strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
-                            create_chatroom(session_id);
+                            //need implementation
+                            //create_chatroom(session_id);
                             recv_message.type = TYPE_NS_ACK;
 
                             write(client_sock_fd, &reply_message, sizeof(Message));
@@ -261,21 +256,23 @@ void client_routine(void* arg){
                         case TYPE_JOIN:
 
                             //Get session id and join user
-                            strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
-                            can_join = join_user(&user, session_id);
+                            strcpy(session_id,recv_message.data);
+                            //need implementation
+                            //can_join = join_user(&user, session_id);
                             if(can_join){
                                 user.status = JOINED;
                                 recv_message.type = TYPE_JN_ACK;
                                 recv_message.size = strlen(session_id);
                                 strcpy(recv_message.data,session_id);
+                                printf("User: %s joined %s.\n", user.username, session_id);
                             }else{
+                                printf("User: %s failed to joined %s.\n", user.username, session_id);
                                 recv_message.type = TYPE_JN_NACK;
-                                strcpy(recv_message.data, "ERROR: unable to join, invalid session ID.\n");
-                                recv_message.size = strlen("ERROR: unable to join, invalid session ID.\n");
+                                strcat(session_id, ", ERROR: unable to join, invalid session ID.\n");
+                                strcpy(recv_message.data, session_id);
+                                recv_message.size = strlen(session_id);
                             }
                             write(client_sock_fd, &recv_message, sizeof(Message));
-
-                            printf("User: %s joined %s", user.username, session_id);
                         break;
                     }
                 break;
@@ -286,7 +283,8 @@ void client_routine(void* arg){
                         
                         //User querying active users
                         case TYPE_QUERY:
-                            query(data_buff);
+                            //need implementation
+                            //query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);
@@ -297,14 +295,16 @@ void client_routine(void* arg){
 
                         //User message
                         case TYPE_MESSAGE:
-                            send_message(&recv_message);
+                            //need implementation
+                            //send_message(&recv_message);
                         break;
 
 
                         //User leave session
                         case TYPE_LEAVE_SESS:
                             strcpy(session_id, recv_message.data);
-                            delete_user(&user);
+                            //need implementation
+                            //delete_user(&user);
                             user.status = LOGIN;
 
                             printf("User: %s left session: %s.\n", user.username, session_id);
@@ -314,7 +314,8 @@ void client_routine(void* arg){
                         //User leave server
                         case TYPE_EXIT:
                             printf("User %s just exited from server\n", user.username);
-                            delete_user(&user);
+                            //need implementation
+                            //delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
                         break;
