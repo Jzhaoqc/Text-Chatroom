@@ -193,9 +193,9 @@ void client_routine(void* arg){
                             //Construct response message
                             if(user_exists){
                                 reply_message.type = TYPE_LO_ACK;
-                                reply_message.size = 0;
-                                strcpy(reply_message.data,"0");
-                                strcpy(reply_message.source,"0");
+                                // reply_message.size = 0;
+                                // strcpy(reply_message.data,"0");
+                                // strcpy(reply_message.source,"0");
                             }else{
                                 char* msg = "Invalid user name or password\n";
                                 reply_message.type = TYPE_LO_NACK;
