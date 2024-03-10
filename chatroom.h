@@ -60,7 +60,7 @@ typedef struct chatroomlist{
 
 
 extern Chatroom_List* room_list_global;
-extern pthread_mutex_t mux;
+extern pthread_mutex_t* mux;
 
 void delete_user(User* user);
 void query(char buff[]);
