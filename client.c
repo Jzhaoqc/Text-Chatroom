@@ -41,6 +41,7 @@ const char *QUIT_CMD = "/quit";
 
 // Client State
 int state = START;
+int current_type;
 
 // Struct
 typedef struct Message {
@@ -57,6 +58,8 @@ typedef struct pthread_arg_t {
 
 void *recv_login(void * arg);
 
+// /login user1 123 128.100.13.166 55000
+
 int main(){
 
     printf("client\n");
@@ -72,12 +75,14 @@ int main(){
 
     pthread_arg_t *recv_thread_arg;
     pthread_t recv_thread;
-    memset(&recv_thread_arg, 0, sizeof(recv_thread_arg));
+    recv_thread_arg = (pthread_arg_t *)malloc(sizeof *recv_thread_arg); 
 
     while (1) {
 
         char *token;
         char USER_INPUT[BUF_SIZE];
+
+        memset(&client_message, 0, sizeof(Message));
 
         if (fgets(USER_INPUT, sizeof(USER_INPUT), stdin) == NULL) {
             perror("Input error!\n");
@@ -126,8 +131,11 @@ int main(){
 
                 //printf("%s %s %s %d\n", USER_ID, USER_PWD, USER_IP, USER_PORT);
 
+                // Change type for reading ACK
+                current_type = TYPE_LOGIN;
+
                 // Create client message
-                client_message.type = TYPE_LOGIN;
+                client_message.type = current_type;
                 client_message.size = strlen(USER_PWD);
                 strcpy(client_message.data, USER_PWD);
                 strcpy(client_message.source, USER_ID);
@@ -141,19 +149,20 @@ int main(){
                 server_addr.sin_family = AF_INET;
                 server_addr.sin_port = htons(USER_PORT);
                 server_addr.sin_addr.s_addr = inet_addr(USER_IP);
-
                 
                 // Connect to server
                 if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
                     perror("TCP connection error!\n");
                     exit(1);
                 }
-                printf("pre reached\n");
+
+                printf("Connected!\n");
+
                 strcpy(recv_thread_arg->clientID, USER_ID);
                 recv_thread_arg->socket_fd = sock_fd;
-                printf("reached\n");
+                
                 // Create thread to listen for server reply
-                if (pthread_create(&recv_thread, NULL, &recv_login, (void *) recv_thread_arg) != 0){
+                if (pthread_create(&recv_thread, NULL, recv_login, (void *) recv_thread_arg) != 0){
                     perror("pthread create error!\n");
                     exit(1);
                 }
@@ -170,7 +179,6 @@ int main(){
                 }
                 printf("User Message Sent!\n");
                 
-
             } else if (strcmp(token, QUIT_CMD) == 0) {
                 printf("Program exited.\n");
                 exit(0);
@@ -186,30 +194,142 @@ int main(){
         3. Create
         4. Quit
         */
-            // if (strcmp(token, LOGOUT_CMD) == 0) {
+            if (strcmp(token, LOGOUT_CMD) == 0) {
 
-            //     // Create a exit message
-            //     client_message.type = TYPE_EXIT;
-            //     strcpy(client_message.data, NULL);
-            //     client_message.size = sizeof(client_message.data);
-            //     strcpy(client_message.source, USER_ID);
+                // Create a exit message
+                client_message.type = TYPE_EXIT;
+                strcpy(client_message.source, USER_ID);
 
-            //     // Send the message to server
-            //     if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(client_message)) {
-            //         perror("Send error!\n");
-            //         exit(1);
-            //     }
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
 
-            // } else if (strcmp(token, JOINSESSION_CMD) == 0) {
+                state = START;
+                printf("You have logged out, please re-login.\n");
 
-            //     // Get the session id
-            //     token = strtok(NULL, " ");
-            //     int session_id = atoi(token);
-            // }
+            } else if (strcmp(token, JOINSESSION_CMD) == 0) {
 
+                // Get the session id
+                token = strtok(NULL, " ");
+                char *session_id = token;
 
+                // Change type for reading ACK
+                current_type = TYPE_JOIN;
+                
+                // Create client message
+                client_message.type = current_type;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, session_id);
+                client_message.size = sizeof(client_message.data);
 
-            printf("Arrived at login!\n");
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, CREATESESSION_CMD) == 0) {
+
+                // Get the session id
+                token = strtok(NULL, " ");
+                char *session_id = token;
+
+                // Change type for reading ACK
+                current_type = TYPE_NEW_SESS;
+                
+                // Create client message
+                client_message.type = current_type;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, session_id);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, LIST_CMD) == 0) {
+
+                // Create client message
+                current_type = TYPE_QUERY;
+
+                client_message.type = current_type;
+                strcpy(client_message.source, USER_ID);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, QUIT_CMD) == 0) {
+                printf("Program exited.\n");
+                exit(0);
+            }
+
+            break;
+
+        case JOINED:
+        /*
+        Choices at this stage:
+        1. Logout
+        2. Leave
+        4. Quit
+        */
+            if (strcmp(token, LOGOUT_CMD) == 0) {
+
+                // Create a exit message
+                client_message.type = TYPE_EXIT;
+                strcpy(client_message.source, USER_ID);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+                state = START;
+                printf("You have logged out, please re-login.\n");
+
+            } else if (strcmp(token, LEAVESESSION_CMD) == 0) {
+
+                // Create a exit message
+                client_message.type = TYPE_LEAVE_SESS;
+                strcpy(client_message.source, USER_ID);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, QUIT_CMD) == 0) {
+                printf("Program exited.\n");
+                exit(0);
+            } else {
+
+                client_message.type = TYPE_MESSAGE;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, USER_INPUT);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
+            }
             break;
 
         }
@@ -223,18 +343,63 @@ void *recv_login(void * arg) {
     Message server_message;
 
     while (1) {
-        if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-            perror("Read error!\n");
-            printf("error\n");
-            exit(1);
+        switch (current_type) {
+        case TYPE_LOGIN:
+            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                perror("Read error!\n");
+                exit(1);
+            }
+
+            if (server_message.type == TYPE_LO_ACK) {
+                printf("You are logged in!\n");
+                state = LOGIN;
+                current_type = -1;
+            } else if (server_message.type == TYPE_LO_NACK) {
+                printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
+            }   
+            break;
+
+        case TYPE_JOIN:
+            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                perror("Read error!\n");
+                exit(1);
+            }
+
+            if (server_message.type == TYPE_JN_ACK) {
+                printf("You have joined session: %s!\n", server_message.data);
+                state = JOINED;
+                current_type = -1;
+            } else if (server_message.type == TYPE_JN_NACK) {
+                char *session = strtok(server_message.data, " ");
+                char *reason = strtok(NULL, " ");
+                printf("Join failed for session %s due to: %s\n", session, reason);
+            }   
+            break;
+        
+        case TYPE_NEW_SESS:
+            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                perror("Read error!\n");
+                exit(1);
+            }
+
+            if (server_message.type == TYPE_NS_ACK) {
+                printf("You have created and joined session: %s!\n", server_message.data);
+                state = JOINED;
+                current_type = -1;
+            }
+            break;
+
+        case TYPE_QUERY:
+            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                perror("Read error!\n");
+                exit(1);
+            }
+
+            if (server_message.type == TYPE_QU_ACK) {
+                printf("List of Users and Sessions: \n%s", server_message.data);
+            }
+
         }
-        printf("Read\n");
-        if (server_message.type == TYPE_LO_ACK) {
-            printf("You are logged in!\n");
-            state = LOGIN;
-        } else if (server_message.type == TYPE_LO_NACK) {
-            printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
-        }   
     }
     
     return NULL;
