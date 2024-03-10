@@ -391,10 +391,6 @@ void *recv_login(void * arg) {
                 perror("Read error!\n");
                 exit(1);
             }
-            printf("type = %d\n", server_message.type);
-            printf("data = %s\n", server_message.data);
-            printf("size = %d\n", server_message.size);
-
 
             if (server_message.type == TYPE_NS_ACK) {
                 printf("You have created and joined session: %s!\n", server_message.data);
@@ -420,4 +416,4 @@ void *recv_login(void * arg) {
     return NULL;
 }
 
-// /login user1 123 128.100.13.166 123454
+// /login user1 123 128.100.13.166 123456
