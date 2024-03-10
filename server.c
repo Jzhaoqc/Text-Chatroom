@@ -378,6 +378,7 @@ void signal_setup(int sock_fd){
 
 void signal_handler(int signal){
     exit(EXIT_FAILURE);
+    
 }
 
 // void pthread_setup(pthread_attr_t pthread_attr){
