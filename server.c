@@ -33,7 +33,6 @@ typedef struct pthread_client_info{
 //Function declarations
 void signal_setup(int sock_fd);
 void signal_handler(int signal);
-//void pthread_setup(pthread_attr_t pthread_attr);
 void client_routine(void* arg);
 
 int main(int argc, char *argv[]){
@@ -88,9 +87,6 @@ int main(int argc, char *argv[]){
     pthread_t pthread;
     //pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
     socklen_t client_address_len;
-
-    //Init pthread param
-    //pthread_setup(pthread_attr);
 
     while(1){
 
@@ -154,6 +150,7 @@ void client_routine(void* arg){
         memset(data_buff, 0, 1024);
         memset(session_id, 0, 1024);
 
+        printf("\n\n[Server]: Waiting for packet...\n");
         n = read(client_sock_fd, &recv_message, sizeof (Message));
         if(n < 0){
             perror("ERROR: server read\n");
@@ -161,7 +158,7 @@ void client_routine(void* arg){
         }
         else if(n == 0){
             //need implementation
-            //delete_user(&user);
+            delete_user(&user);
         }
         else if(n != sizeof (Message)){
             perror("WARNING: Message wrong size\n");
@@ -236,7 +233,7 @@ void client_routine(void* arg){
                             printf("[Server]: Received exit request.\n");
                             printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
-                            //delete_user(&user);
+                            delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
                         break;
@@ -322,6 +319,8 @@ void client_routine(void* arg){
                             printf("[Server]: Received message from %s.\n", recv_message.source);
                             //need testing
                             send_message(&recv_message);
+                            printf("loop: %d\n", loop);
+                            printf("user status: %d\n", user.status);
                         break;
 
 
@@ -331,7 +330,7 @@ void client_routine(void* arg){
 
                             strcpy(session_id, recv_message.data);
                             //need implementation
-                            //delete_user(&user);
+                            delete_user(&user);
                             user.status = LOGIN;
 
                             printf("    User: %s left session: %s.\n\n\n", user.username, session_id);
@@ -344,7 +343,7 @@ void client_routine(void* arg){
                         
                             printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
-                            //delete_user(&user);
+                            delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
                         break;

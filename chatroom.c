@@ -83,10 +83,14 @@ void send_message(Message* recv_message){
             current_member = current_member->next;
         }
 
-        if(!found_source){
+        if(found_source){
+            break;
+        }else{
             current_room = current_room->next;
         }
     }
+
+    printf("found room: %s\n", current_room->room_name);
 
     if(!found_source){
         printf("ERROR: send_message func should find the user but couldn't.\n");
@@ -98,19 +102,23 @@ void send_message(Message* recv_message){
     while(current_member != NULL){
         
         //Send to every user in the room except for the source
-        if(strcmp(current_member->user->username, source_username) == 0){
-            continue;
-        }else{
+        if(strcmp(current_member->user->username, source_username) != 0){
+
             //Construct reply message
             Message reply_msg;
+            memset(&reply_msg, 0, sizeof(Message));
             reply_msg.type = TYPE_MESSAGE;
             strcpy(reply_msg.source, source_username);
-            reply_msg.size = sizeof(message_content);
-            strcpy(reply_msg.data,message_content);
+            reply_msg.size = strlen(message_content);
+            strncpy(reply_msg.data,message_content,strlen(message_content));
 
-            write(current_member->user->sock_fd, &reply_msg, sizeof(Message));
+            if((write(current_member->user->sock_fd, &reply_msg, sizeof(Message)) )<0){
+                printf("ERROR: write fault\n");
+            }
+            printf("sent message to: %s\n", current_member->user->username);
         }
 
+        printf("going to the next member...\n");
         current_member = current_member->next;
     }
 
