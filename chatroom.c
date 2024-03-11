@@ -184,6 +184,7 @@ void delete_user(User* user) {
     pthread_mutex_lock(&mux); 
 
     Chatroom* current_room = room_list_global->first_room;
+    Chatroom* prev_room = NULL;
     while (current_room != NULL) {
         Member* current_member = current_room->first_member;
         Member* prev_member = NULL;
@@ -191,31 +192,54 @@ void delete_user(User* user) {
             if (current_member->user == user) {
                 // Found the user, now remove this member from the list
                 if (prev_member != NULL) {
-                    prev_member->next = current_member->next; // Bypass the current member
+                    prev_member->next = current_member->next;
                     if (current_member->next != NULL) {
                         current_member->next->prev = prev_member;
                     }
                 } else {
-                    // The member to be deleted is the first member in the room
                     current_room->first_member = current_member->next;
                     if (current_member->next != NULL) {
                         current_member->next->prev = NULL;
                     }
                 }
-                
-                // Update the number of members in the room
+
+                // Decrease the member count
                 current_room->num_in_room -= 1;
-                
-                // Free the member now that it's been removed
+
+                // Free the member
                 free(current_member);
-                break; // Assuming a user can only be in a room once, break after removing
+                break; // Assuming a user can only be in a room once
             }
             prev_member = current_member;
             current_member = current_member->next;
         }
+
+        // Check if room is empty now and needs to be removed
+        if (current_room->num_in_room == 0) {
+            if (prev_room != NULL) {
+                prev_room->next = current_room->next;
+                if (current_room->next != NULL) {
+                    current_room->next->prev = prev_room;
+                }
+            } else {
+                room_list_global->first_room = current_room->next;
+                if (current_room->next != NULL) {
+                    current_room->next->prev = NULL;
+                }
+            }
+
+            Chatroom* temp_room = current_room;
+            current_room = current_room->next; // Move to next room before freeing memory
+
+            free(temp_room);
+            continue; // Skip the usual next-room update at the end of the loop
+        }
+
+        prev_room = current_room;
         current_room = current_room->next;
     }
     
-    pthread_mutex_unlock(&mux);
+    pthread_mutex_unlock(&mux); // Unlock before returning
 }
+
 
