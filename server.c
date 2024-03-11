@@ -311,8 +311,8 @@ void client_routine(void* arg){
 
                         //User message
                         case TYPE_MESSAGE:
-                            //need implementation
-                            //send_message(&recv_message);
+                            //need testing
+                            send_message(&recv_message);
                         break;
 
 
