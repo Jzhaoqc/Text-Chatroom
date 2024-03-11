@@ -169,6 +169,12 @@ void client_routine(void* arg){
         }
         else{
 
+            printf("----Packet Content----\n");
+            printf("Message source: %s\n", recv_message.source);
+            printf("Message type: %d\n", recv_message.type);
+            printf("Message content: %s\n", recv_message.data);
+            printf("----------------------\n");
+
             //User log in log out
             switch (user.status){
                 
@@ -184,7 +190,7 @@ void client_routine(void* arg){
                             //Extract source information
                             client_id = (char*) recv_message.source;
                             client_password = (char*) recv_message.data;
-                            printf("    Client ID: %s, Password: %s\n", client_id, client_password);
+                            printf("    Client ID: %s, Password: %s\n\n\n", client_id, client_password);
 
                             //Check if user exist
                             bool user_exists = false;
@@ -228,7 +234,7 @@ void client_routine(void* arg){
                         //User exit
                         case TYPE_EXIT:
                             printf("[Server]: Received exit request.\n");
-                            printf("    User %s just exited from server\n", user.username);
+                            printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
                             //delete_user(&user);
                             close(client_sock_fd);
@@ -252,16 +258,18 @@ void client_routine(void* arg){
                         //User new session
                         case TYPE_NEW_SESS:
                             printf("[Server]: Received new session request.\n");
-                            //need testing
-                            create_chatroom(session_id, &user);
 
                             strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
                             reply_message.size = sizeof(session_id);
                             reply_message.type = TYPE_NS_ACK;
                             strcpy(reply_message.data,session_id);
 
+                            //need testing
+                            create_chatroom(session_id, &user);
+                            user.status = JOINED;
+
                             write(client_sock_fd, &reply_message, sizeof (Message));
-                            printf("    New session: %s, created.\n", session_id);
+                            printf("    New session: %s, created.\n\n\n", session_id);
                         break;
 
 
@@ -278,9 +286,9 @@ void client_routine(void* arg){
                                 reply_message.type = TYPE_JN_ACK;
                                 reply_message.size = strlen(session_id);
                                 strcpy(reply_message.data,session_id);
-                                printf("    User: %s joined %s.\n", user.username, session_id);
+                                printf("    User: %s joined %s.\n\n\n", user.username, session_id);
                             }else{
-                                printf("    User: %s failed to joined %s.\n", user.username, session_id);
+                                printf("    User: %s failed to joined %s.\n\n\n", user.username, session_id);
                                 reply_message.type = TYPE_JN_NACK;
                                 strcat(session_id, ", ERROR: unable to join, invalid session ID.\n");
                                 strcpy(reply_message.data, session_id);
@@ -311,6 +319,7 @@ void client_routine(void* arg){
 
                         //User message
                         case TYPE_MESSAGE:
+                            printf("[Server]: Received message from %s.\n", recv_message.source);
                             //need testing
                             send_message(&recv_message);
                         break;
@@ -325,7 +334,7 @@ void client_routine(void* arg){
                             //delete_user(&user);
                             user.status = LOGIN;
 
-                            printf("    User: %s left session: %s.\n", user.username, session_id);
+                            printf("    User: %s left session: %s.\n\n\n", user.username, session_id);
                         break;
 
 
@@ -333,7 +342,7 @@ void client_routine(void* arg){
                         case TYPE_EXIT:
                             printf("[Server]: Received exit request.\n");
                         
-                            printf("    User %s just exited from server\n", user.username);
+                            printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
                             //delete_user(&user);
                             close(client_sock_fd);

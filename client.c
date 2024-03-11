@@ -428,5 +428,3 @@ void *recv_login(void * arg) {
     printf("thread exiting\n");
     return NULL;
 }
-
-// /login user2 123 128.100.13.166 12345

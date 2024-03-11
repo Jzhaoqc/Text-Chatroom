@@ -4,7 +4,7 @@ Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
 
 //create chatroom node, add to big list
-void create_chatroom(char session_id[], User* user){
+void create_chatroom(char* session_id, User* user){
     Chatroom *current = NULL;
     Chatroom *traverse = NULL;
 
@@ -39,7 +39,6 @@ void create_chatroom(char session_id[], User* user){
 
     //Initialize room fields
     strcpy(current->room_name, session_id);
-    printf("\nsession id: %s\n", current->room_name);
     current->num_in_room = 1;
     current->first_member = (Member*) malloc(sizeof(Member));
     current->first_member->user = user;
@@ -68,11 +67,12 @@ void send_message(Message* recv_message){
     char* source_username = recv_message->source;
     char* message_content = recv_message->data;
     Chatroom* current_room = room_list_global->first_room;
-    Member* current_member = room_list_global->first_room->first_member;
+    Member* current_member;
     bool found_source = false;
 
     //Find which room the user is from 
     while( (current_room != NULL) && !(found_source) ){
+        current_member  = current_room->first_member;
         //Find if source exist within current chatroom
         while(current_member != NULL){
             if( (strcmp(current_member->user->username, source_username)) == 0){
@@ -83,7 +83,9 @@ void send_message(Message* recv_message){
             current_member = current_member->next;
         }
 
-        current_room = current_room->next;
+        if(!found_source){
+            current_room = current_room->next;
+        }
     }
 
     if(!found_source){
@@ -123,7 +125,7 @@ void query(char buff[]) {
     while (current_room != NULL) {
         // Append the chat room name to the buffer
         snprintf(buff + strlen(buff), BUF_SIZE - strlen(buff), "%s\n", current_room->room_name);
-        printf("Current room name is: %s\n", current_room->room_name);
+        //printf("Current room name is: %s\n", current_room->room_name);
 
         Member* current_member = current_room->first_member;
         while (current_member != NULL) {
