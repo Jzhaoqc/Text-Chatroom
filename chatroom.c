@@ -178,3 +178,44 @@ bool join_user(User* user, char session_id[]) {
     pthread_mutex_unlock(&mux); 
     return false; // Chat room not found
 }
+
+void delete_user(User* user) {
+    
+    pthread_mutex_lock(&mux); 
+
+    Chatroom* current_room = room_list_global->first_room;
+    while (current_room != NULL) {
+        Member* current_member = current_room->first_member;
+        Member* prev_member = NULL;
+        while (current_member != NULL) {
+            if (current_member->user == user) {
+                // Found the user, now remove this member from the list
+                if (prev_member != NULL) {
+                    prev_member->next = current_member->next; // Bypass the current member
+                    if (current_member->next != NULL) {
+                        current_member->next->prev = prev_member;
+                    }
+                } else {
+                    // The member to be deleted is the first member in the room
+                    current_room->first_member = current_member->next;
+                    if (current_member->next != NULL) {
+                        current_member->next->prev = NULL;
+                    }
+                }
+                
+                // Update the number of members in the room
+                current_room->num_in_room -= 1;
+                
+                // Free the member now that it's been removed
+                free(current_member);
+                break; // Assuming a user can only be in a room once, break after removing
+            }
+            prev_member = current_member;
+            current_member = current_member->next;
+        }
+        current_room = current_room->next;
+    }
+    
+    pthread_mutex_unlock(&mux);
+}
+
