@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "pthread.h"
 #include "stdbool.h"
+#include "string.h"
 
 //User status
 #define LOGOUT 0

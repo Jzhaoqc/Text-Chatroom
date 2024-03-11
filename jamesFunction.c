@@ -38,6 +38,51 @@ void create_chatroom(char session_id[], User* user){
 
 //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
 void send_message(Message* recv_message){
+    char* source_username = recv_message->source;
+    char* message_content = recv_message->data;
+    Chatroom* current_room = room_list_global->first_room;
+    Member* current_member = room_list_global->first_room->first_member;
+    bool found_source = false;
 
+    //Find which room the user is from 
+    while( (current_room != NULL) && !(found_source) ){
+        //Find if source exist within current chatroom
+        while(current_member != NULL){
+            if( (strcmp(current_member->user->username, source_username)) == 0){
+                found_source = true;
+                break;
+            }
+
+            current_member = current_member->next;
+        }
+
+        current_room = current_room->next;
+    }
+
+    if(!found_source){
+        printf("ERROR: send_message func should find the user but couldn't.\n");
+        return;
+    }
+
+    //Sending message to everyone in the room
+    current_member = current_room->first_member;
+    while(current_member != NULL){
+        
+        //Send to every user in the room except for the source
+        if(strcmp(current_member->user->username, source_username) == 0){
+            continue;
+        }else{
+            //Construct reply message
+            Message reply_msg;
+            reply_msg.type = TYPE_MESSAGE;
+            strcpy(reply_msg.source, source_username);
+            reply_msg.size = sizeof(message_content);
+            strcpy(reply_msg.data,message_content);
+
+            write(current_member->user->sock_fd, &reply_msg, sizeof(Message));
+        }
+
+        current_member = current_member->next;
+    }
 
 }
