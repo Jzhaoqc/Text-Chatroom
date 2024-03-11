@@ -44,6 +44,8 @@ int state = START;
 int current_type;
 int threadLoop;
 
+char USER_IN_SAVE[BUF_SIZE];
+
 // Struct
 typedef struct Message {
 	unsigned int type;
@@ -82,13 +84,18 @@ int main(){
 
         char *token;
         char USER_INPUT[BUF_SIZE];
+        
+        memset(&USER_IN_SAVE, 0, BUF_SIZE);
 
-        memset(&client_message, 0, sizeof(Message));
+        memset(&client_message.size, 0, sizeof(client_message.size));
+        memset(&client_message.data, 0, sizeof(client_message.data));
 
         if (fgets(USER_INPUT, sizeof(USER_INPUT), stdin) == NULL) {
             perror("Input error!\n");
             exit(1);                
         }
+        strcpy(USER_IN_SAVE, USER_INPUT);
+
         USER_INPUT[strlen(USER_INPUT) - 1] = 0; // Remove ending character
         token = strtok(USER_INPUT, " ");
 
@@ -316,6 +323,8 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+
+                state = LOGIN;
                 
                 printf("Message sent!\n");
 
@@ -326,7 +335,7 @@ int main(){
 
                 client_message.type = TYPE_MESSAGE;
                 strcpy(client_message.source, USER_ID);
-                strcpy(client_message.data, USER_INPUT);
+                strcpy(client_message.data, USER_IN_SAVE);
                 client_message.size = sizeof(client_message.data);
 
                 // Send the message to server
@@ -334,6 +343,7 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
+                //printf("Message: %s\n", client_message.data);
                 printf("Message sent!\n");
 
             }
