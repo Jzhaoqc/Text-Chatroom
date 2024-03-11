@@ -11,6 +11,8 @@
 #define LOGIN 1
 #define JOINED 2
 
+#define BUF_SIZE 1024
+
 //Message status
 #define TYPE_LOGIN 1
 #define TYPE_LO_ACK 2

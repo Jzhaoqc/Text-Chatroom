@@ -351,66 +351,79 @@ void *recv_login(void * arg) {
 
     while (threadLoop) {
         memset(&server_message, 0, sizeof(Message));
-        switch (current_type) {
-        case TYPE_LOGIN:
-            printf("Waiting for Login ACK\n");
-            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-                perror("Read error!\n");
-                exit(1);
-            }
 
-            if (server_message.type == TYPE_LO_ACK) {
-                printf("You are logged in!\n");
-                state = LOGIN;
-            } else if (server_message.type == TYPE_LO_NACK) {
-                printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
-            }   
-            current_type = -1;
-            break;
-
-        case TYPE_JOIN:
-            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-                perror("Read error!\n");
-                exit(1);
-            }
-
-            if (server_message.type == TYPE_JN_ACK) {
-                printf("You have joined session: %s!\n", server_message.data);
-                state = JOINED;
-            } else if (server_message.type == TYPE_JN_NACK) {
-                char *session = strtok(server_message.data, " ");
-                char *reason = strtok(NULL, " ");
-                printf("Join failed for session %s due to: %s\n", session, reason);
-            }   
-            current_type = -1;
-            break;
-        
-        case TYPE_NEW_SESS:
-            printf("In NEW SESS\n");
-            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-                perror("Read error!\n");
-                exit(1);
-            }
-
-            if (server_message.type == TYPE_NS_ACK) {
-                printf("You have created and joined session: %s!\n", server_message.data);
-                state = JOINED;
-            }
-            current_type = -1;
-            break;
-
-        case TYPE_QUERY:
-            if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-                perror("Read error!\n");
-                exit(1);
-            }
-
-            if (server_message.type == TYPE_QU_ACK) {
-                printf("List of Users and Sessions: \n%s", server_message.data);
-            }
-            current_type = -1;
-            break;
+        if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+            perror("Read error!\n");
+            exit(1);
         }
+        
+        if (server_message.type == TYPE_MESSAGE) {
+            printf("%s\n", server_message.data);
+        } else {
+
+            switch (current_type) {
+            case TYPE_LOGIN:
+            
+                // if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                //     perror("Read error!\n");
+                //     exit(1);
+                // }   
+
+                if (server_message.type == TYPE_LO_ACK) {
+                    printf("You are logged in!\n");
+                    state = LOGIN;
+                } else if (server_message.type == TYPE_LO_NACK) {
+                    printf("Login failed for %s due to: %s\n", server_message.source, server_message.data);
+                }   
+                current_type = -1;
+                break;
+
+            case TYPE_JOIN:
+                // if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                //     perror("Read error!\n");
+                //     exit(1);
+                // }
+
+                if (server_message.type == TYPE_JN_ACK) {
+                    printf("You have joined session: %s!\n", server_message.data);
+                    state = JOINED;
+                } else if (server_message.type == TYPE_JN_NACK) {
+                    char *session = strtok(server_message.data, " ");
+                    char *reason = strtok(NULL, " ");
+                    printf("Join failed for session %s due to: %s\n", session, reason);
+                }   
+                current_type = -1;
+                break;
+            
+            case TYPE_NEW_SESS:
+                
+                // if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                //     perror("Read error!\n");
+                //     exit(1);
+                // }
+
+                if (server_message.type == TYPE_NS_ACK) {
+                    printf("You have created and joined session: %s!\n", server_message.data);
+                    state = JOINED;
+                }
+                current_type = -1;
+                break;
+
+            case TYPE_QUERY:
+                // if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+                //     perror("Read error!\n");
+                //     exit(1);
+                // }
+
+                if (server_message.type == TYPE_QU_ACK) {
+                    printf("List of Users and Sessions: \n%s", server_message.data);
+                }
+                current_type = -1;
+                break;
+            }
+
+        }
+        
     }
     printf("thread exiting\n");
     return NULL;
