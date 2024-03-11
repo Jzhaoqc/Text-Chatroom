@@ -1,12 +1,19 @@
 #include "chatroom.h"
 
+Chatroom_List* room_list_global;
+pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
+
 //create chatroom node, add to big list
 void create_chatroom(char session_id[], User* user){
     Chatroom *current = NULL;
     Chatroom *traverse = NULL;
 
-    pthread_mutex_lock(mux);
+    pthread_mutex_lock(&mux);
     
+    if(room_list_global == NULL){
+        room_list_global = (Chatroom_List*) malloc(sizeof(Chatroom_List));
+    }
+
     //Check if it is the first room
     if(room_list_global->first_room == NULL){
         printf("[Server Function]: First room in list, creating the first room...\n");
@@ -32,12 +39,28 @@ void create_chatroom(char session_id[], User* user){
 
     //Initialize room fields
     strcpy(current->room_name, session_id);
+    printf("\nsession id: %s\n", current->room_name);
     current->num_in_room = 1;
     current->first_member = (Member*) malloc(sizeof(Member));
     current->first_member->user = user;
     current->first_member->is_owner = true;
 
-    pthread_mutex_unlock(mux);
+    pthread_mutex_unlock(&mux);
+
+    print_all_room();
+}
+
+void print_all_room(){
+    Chatroom* current = room_list_global->first_room;
+
+    printf("\nUpdated room list:\n");
+    while(current != NULL){
+        printf("%s->", current->room_name);
+
+        current = current->next;
+    }
+
+    printf("\n");
 }
 
 //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
@@ -100,6 +123,7 @@ void query(char buff[]) {
     while (current_room != NULL) {
         // Append the chat room name to the buffer
         snprintf(buff + strlen(buff), BUF_SIZE - strlen(buff), "%s\n", current_room->room_name);
+        printf("Current room name is: %s\n", current_room->room_name);
 
         Member* current_member = current_room->first_member;
         while (current_member != NULL) {
@@ -119,7 +143,7 @@ void query(char buff[]) {
 
 bool join_user(User* user, char session_id[]) {
     
-    pthread_mutex_lock(mux); 
+    pthread_mutex_lock(&mux); 
     
     Chatroom* current_room = room_list_global->first_room;
 
@@ -143,12 +167,12 @@ bool join_user(User* user, char session_id[]) {
             
             current_room->num_in_room += 1;
             
-            pthread_mutex_unlock(mux); 
+            pthread_mutex_unlock(&mux); 
             return true; 
         }
         current_room = current_room->next;
     }
     
-    pthread_mutex_unlock(mux); 
+    pthread_mutex_unlock(&mux); 
     return false; // Chat room not found
 }

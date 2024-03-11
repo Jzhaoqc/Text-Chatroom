@@ -6,6 +6,15 @@
 #include "stdbool.h"
 #include "string.h"
 #include "stdlib.h"
+#include "sys/types.h"
+#include "sys/socket.h"
+#include "unistd.h"
+#include "errno.h"
+#include "netinet/in.h"
+#include "arpa/inet.h"
+#include "netdb.h"
+#include "signal.h"
+#include "pthread.h"
 
 //User status
 #define LOGOUT 0
@@ -65,12 +74,15 @@ typedef struct chatroomlist{
 
 
 extern Chatroom_List* room_list_global;
-extern pthread_mutex_t* mux;
+extern pthread_mutex_t mux;
 
 void delete_user(User* user);
 void query(char buff[]); //travers 2D linked list
 bool join_user(User* user, char session_id[]);  //check session exit, if so add user as member to chatroom
 void create_chatroom(char session_id[], User* user);    //create chatroom node, add to big list
 void send_message(Message* recv_message);   //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
+
+//debug func
+void print_all_room();
 
 #endif

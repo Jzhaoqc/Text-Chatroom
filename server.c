@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
     //pthread_attr_t pthread_attr;
     pthread_client_arg *pthread_arg;
     pthread_t pthread;
-    pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
+    //pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
     socklen_t client_address_len;
 
     //Init pthread param

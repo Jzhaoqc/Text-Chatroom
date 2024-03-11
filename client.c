@@ -429,4 +429,4 @@ void *recv_login(void * arg) {
     return NULL;
 }
 
-// /login user1 123 128.100.13.166 123456
+// /login user2 123 128.100.13.166 12345
