@@ -150,7 +150,7 @@ void client_routine(void* arg){
         memset(data_buff, 0, 1024);
         memset(session_id, 0, 1024);
 
-        printf("\n\n[Server]: Waiting for packet...\n");
+        //printf("\n\n[Server]: Waiting for packet...\n");
         n = read(client_sock_fd, &recv_message, sizeof (Message));
         if(n < 0){
             perror("ERROR: server read\n");

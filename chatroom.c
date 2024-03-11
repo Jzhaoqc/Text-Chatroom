@@ -65,10 +65,11 @@ void print_all_room(){
 //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
 void send_message(Message* recv_message){
     char* source_username = recv_message->source;
-    char* message_content = recv_message->data;
     Chatroom* current_room = room_list_global->first_room;
     Member* current_member;
     bool found_source = false;
+    char msg_buff[100];
+    char* msg_spacer = " > ";
 
     //Find which room the user is from 
     while( (current_room != NULL) && !(found_source) ){
@@ -90,8 +91,6 @@ void send_message(Message* recv_message){
         }
     }
 
-    printf("found room: %s\n", current_room->room_name);
-
     if(!found_source){
         printf("ERROR: send_message func should find the user but couldn't.\n");
         return;
@@ -107,15 +106,18 @@ void send_message(Message* recv_message){
             //Construct reply message
             Message reply_msg;
             memset(&reply_msg, 0, sizeof(Message));
+            strcpy(msg_buff, recv_message->source);
+            strcat(msg_buff, msg_spacer);
+            strcat(msg_buff, recv_message->data);
+            printf("%s", msg_buff);
             reply_msg.type = TYPE_MESSAGE;
             strcpy(reply_msg.source, source_username);
-            reply_msg.size = strlen(message_content);
-            strncpy(reply_msg.data,message_content,strlen(message_content));
+            reply_msg.size = strlen(msg_buff);
+            strncpy(reply_msg.data,msg_buff,strlen(msg_buff));
 
             if((write(current_member->user->sock_fd, &reply_msg, sizeof(Message)) )<0){
                 printf("ERROR: write fault\n");
             }
-            printf("sent message to: %s\n", current_member->user->username);
         }
 
         printf("going to the next member...\n");
