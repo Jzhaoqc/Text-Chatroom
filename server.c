@@ -252,17 +252,13 @@ void client_routine(void* arg){
                         //User new session
                         case TYPE_NEW_SESS:
                             printf("[Server]: Received new session request.\n");
-                            //need implementation
-                            //create_chatroom(session_id);
+                            //need testing
+                            create_chatroom(session_id, &user);
 
                             strcpy(session_id,recv_message.data);               //might need client to add \0 at the end of the string
                             reply_message.size = sizeof(session_id);
                             reply_message.type = TYPE_NS_ACK;
                             strcpy(reply_message.data,session_id);
-
-                            printf("data: %s\n", reply_message.data);
-                            printf("size: %d\n", reply_message.size);
-                            printf("type: %d\n", reply_message.type);
 
                             write(client_sock_fd, &reply_message, sizeof (Message));
                             printf("    New session: %s, created.\n", session_id);

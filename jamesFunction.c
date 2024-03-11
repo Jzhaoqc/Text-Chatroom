@@ -7,7 +7,7 @@ void create_chatroom(char session_id[], User* user){
     
     //Check if it is the first room
     if(room_list_global->first_room == NULL){
-        printf("[Server]: First room in list, creating the first room...\n");
+        printf("[Server Function]: First room in list, creating the first room...\n");
         
         //Create new room and add to gobal list
         current = (Chatroom*) malloc(sizeof(Chatroom));
@@ -15,10 +15,13 @@ void create_chatroom(char session_id[], User* user){
     }
     //Traverse to the last chatroom node and add new room at the end
     else{
+        int count = 0;
         traverse = room_list_global->first_room;
         while(traverse->next != NULL){
             traverse = traverse->next;
+            count++;
         }
+        printf("[Server Function]: %d rooms in list, creating the another one...\n", count);
 
         //Create new room and add to gobal list
         current = (Chatroom*) malloc(sizeof(Chatroom));
