@@ -40,7 +40,7 @@ typedef struct user{
 }User;
 
 typedef struct member{
-    User user;
+    User* user;
     bool is_owner;
     struct member* prev;
     struct member* next;
