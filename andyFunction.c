@@ -24,10 +24,6 @@ void query(char buff[]) {
 } //travers 2D linked list
 
 
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-
 // Assuming the structs and global variables you've defined earlier are available here.
 
 bool join_user(User* user, char session_id[]) {

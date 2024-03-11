@@ -239,8 +239,8 @@ void client_routine(void* arg){
                         //User querying active users
                         case TYPE_QUERY:
                             printf("[Server]: Received query request.\n");
-                            //need implementation
-                            //query(data_buff);
+                            //need testing
+                            query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);
@@ -271,8 +271,8 @@ void client_routine(void* arg){
 
                             //Get session id and join user
                             strcpy(session_id,recv_message.data);
-                            //need implementation
-                            //can_join = join_user(&user, session_id);
+                            //need testing
+                            can_join = join_user(&user, session_id);
                             if(can_join){
                                 user.status = JOINED;
                                 reply_message.type = TYPE_JN_ACK;
@@ -299,8 +299,8 @@ void client_routine(void* arg){
                         case TYPE_QUERY:
                             printf("[Server]: Received query request.\n");
 
-                            //need implementation
-                            //query(data_buff);
+                            //need testing
+                            query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);

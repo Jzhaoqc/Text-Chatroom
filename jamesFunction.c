@@ -4,6 +4,8 @@
 void create_chatroom(char session_id[], User* user){
     Chatroom *current = NULL;
     Chatroom *traverse = NULL;
+
+    pthread_mutex_lock(mux);
     
     //Check if it is the first room
     if(room_list_global->first_room == NULL){
@@ -34,6 +36,8 @@ void create_chatroom(char session_id[], User* user){
     current->first_member = (Member*) malloc(sizeof(Member));
     current->first_member->user = user;
     current->first_member->is_owner = true;
+
+    pthread_mutex_unlock(mux);
 }
 
 //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members
