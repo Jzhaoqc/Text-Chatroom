@@ -242,8 +242,15 @@ void client_routine(void* arg){
                         //User querying active users
                         case TYPE_QUERY:
                             printf("[Server]: Received query request.\n");
-                            //need testing
-                            query(data_buff);
+
+                            //Init global chatroom list if it is null
+                            if(room_list_global->first_room == NULL){
+                                strcpy(data_buff, "Empty.\n");
+                            }else{
+                                //need testing
+                                query(data_buff);
+                            }
+
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);
