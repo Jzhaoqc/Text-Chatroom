@@ -189,6 +189,17 @@ int main(){
                 printf("User Message Sent!\n");
                 
             } else if (strcmp(token, QUIT_CMD) == 0) {
+                // Create a exit message
+                client_message.type = TYPE_EXIT;
+                strcpy(client_message.source, USER_ID);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
                 printf("Program exited.\n");
                 exit(0);
             }
@@ -201,7 +212,8 @@ int main(){
         1. Logout
         2. Join
         3. Create
-        4. Quit
+        4. List
+        5. Quit
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
                 
@@ -281,6 +293,17 @@ int main(){
                 printf("Message sent!\n");
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
+                // Create a exit message
+                client_message.type = TYPE_EXIT;
+                strcpy(client_message.source, USER_ID);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
                 printf("Program exited.\n");
                 exit(0);
             }
@@ -292,6 +315,7 @@ int main(){
         Choices at this stage:
         1. Logout
         2. Leave
+        3. List
         4. Quit
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
@@ -328,7 +352,34 @@ int main(){
                 
                 printf("Message sent!\n");
 
+            } else if (strcmp(token, LIST_CMD) == 0) {
+
+                client_message.type = TYPE_QUERY;
+                strcpy(client_message.source, USER_ID);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                // Create client message
+                current_type = TYPE_QUERY;
+                printf("Message sent!\n");
+
             } else if (strcmp(token, QUIT_CMD) == 0) {
+
+                // Create a exit message
+                client_message.type = TYPE_EXIT;
+                strcpy(client_message.source, USER_ID);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                printf("Message sent!\n");
+
                 printf("Program exited.\n");
                 exit(0);
             } else {
