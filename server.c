@@ -193,8 +193,6 @@ void client_routine(void* arg){
                                     user.status = LOGIN;
                                     strcpy(user.username, clients[i].username);
                                     break;
-                                }else{
-                                    clients[i].isOnline = false;
                                 }
                             }
                             
@@ -230,7 +228,7 @@ void client_routine(void* arg){
                             printf("[Server]: Received exit request.\n");
                             printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
-                            delete_user(&user);
+                            delete_user(&user,true);
                             close(client_sock_fd);
                             loop = false;
                         break;
@@ -327,7 +325,7 @@ void client_routine(void* arg){
 
                             strcpy(session_id, recv_message.data);
                             //need implementation
-                            delete_user(&user);
+                            delete_user(&user,false);
                             user.status = LOGIN;
 
                             printf("    User: %s left session: %s.\n\n\n", user.username, session_id);
@@ -340,7 +338,7 @@ void client_routine(void* arg){
                         
                             printf("    User %s just exited from server\n\n\n", user.username);
                             //need implementation
-                            delete_user(&user);
+                            delete_user(&user, true);
                             close(client_sock_fd);
                             loop = false;
 

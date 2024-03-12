@@ -2,7 +2,7 @@
 
 Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
-Client clients[3]= { {"user1", "123"}, {"user2", "123"}, {"user3", "123"} };
+Client clients[3]= { {"user1", "123", false}, {"user2", "123", false}, {"user3", "123", false} };
 
 //create chatroom node, add to big list
 void create_chatroom(char* session_id, User* user){
@@ -205,11 +205,14 @@ bool join_user(User* user, char session_id[]) {
     return false; // Chat room not found
 }
 
-void delete_user(User* user) {
+void delete_user(User* user, bool exit_server) {
     
     pthread_mutex_lock(&mux); 
-
-    Chatroom* current_room = room_list_global->first_room;
+    if(room_list_global == NULL){
+        goto: empty_rooms;
+    }else{
+        Chatroom* current_room = room_list_global->first_room;
+    }
     Chatroom* prev_room = NULL;
     while (current_room != NULL) {
         Member* current_member = current_room->first_member;

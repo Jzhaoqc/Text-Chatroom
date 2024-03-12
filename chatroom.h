@@ -84,7 +84,7 @@ extern pthread_mutex_t mux;
 extern User* user_list_global;
 extern Client clients[3];
 
-void delete_user(User* user);
+void delete_user(User* user, bool exit_server);
 void query(char buff[]); //travers 2D linked list
 bool join_user(User* user, char session_id[]);  //check session exit, if so add user as member to chatroom
 void create_chatroom(char* session_id, User* user);    //create chatroom node, add to big list
