@@ -39,6 +39,12 @@
 #define TYPE_QU_ACK 13
 #define TYPE_REG 14
 
+typedef struct client{
+    char username[100];
+    char password[100];
+    bool isOnline;
+}Client;
+
 typedef struct message{
     unsigned int type;
     unsigned int size;
@@ -75,6 +81,8 @@ typedef struct chatroomlist{
 
 extern Chatroom_List* room_list_global;
 extern pthread_mutex_t mux;
+extern User* user_list_global;
+extern Client clients[3];
 
 void delete_user(User* user);
 void query(char buff[]); //travers 2D linked list

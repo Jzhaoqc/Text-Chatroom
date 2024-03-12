@@ -2,6 +2,7 @@
 
 Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
+Client clients[3]= { {"user1", "123"}, {"user2", "123"}, {"user3", "123"} };
 
 //create chatroom node, add to big list
 void create_chatroom(char* session_id, User* user){
@@ -129,6 +130,21 @@ void send_message(Message* recv_message){
 void query(char buff[]) { 
 
     buff[0] = '\0'; // Ensure the buffer is initially empty
+
+    snprintf(buff, BUF_SIZE - strlen(buff), "Online User:\n");
+    bool user_logged_out = false;
+
+    for(int i=0; i<3; i++){
+        //Logging in if username and password matches
+        if(clients[i].isOnline == true){
+            snprintf(buff + strlen(buff), BUF_SIZE - strlen(buff), "%s\n", clients[i].username);
+            break;
+        }
+    }
+
+    if(room_list_global == NULL){
+        return;
+    }
 
     Chatroom* current_room = room_list_global->first_room;
 

@@ -15,12 +15,6 @@
 
 #define BACKLOG 10  //Max amount of backlog for listen
 
-typedef struct client{
-    char username[100];
-    char password[100];
-}Client;
-
-Client clients[3] = { {"user1", "123"}, {"user2", "123"}, {"user3", "123"} };
 
 typedef struct pthread_client_info{
     int client_sock_fd;
@@ -194,10 +188,13 @@ void client_routine(void* arg){
                             for(int i=0; i<3; i++){
                                 //Logging in if username and password matches
                                 if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
+                                    clients[i].isOnline = true;
                                     user_exists = true;
                                     user.status = LOGIN;
                                     strcpy(user.username, clients[i].username);
                                     break;
+                                }else{
+                                    clients[i].isOnline = false;
                                 }
                             }
                             
@@ -242,15 +239,8 @@ void client_routine(void* arg){
                         //User querying active users
                         case TYPE_QUERY:
                             printf("[Server]: Received query request.\n");
-
-                            //Init global chatroom list if it is null
-                            if(room_list_global->first_room == NULL){
-                                strcpy(data_buff, "Empty.\n");
-                            }else{
-                                //need testing
-                                query(data_buff);
-                            }
-
+                            //need testing
+                            query(data_buff);
                             reply_message.type = TYPE_QU_ACK;
                             reply_message.size = sizeof(data_buff);
                             strcpy(reply_message.data, data_buff);
@@ -353,6 +343,20 @@ void client_routine(void* arg){
                             delete_user(&user);
                             close(client_sock_fd);
                             loop = false;
+
+                            bool user_logged_out = false;
+                            for(int i=0; i<3; i++){
+                                //Logging in if username and password matches
+                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
+                                    clients[i].isOnline = false;
+                                    user_logged_out = true;
+                                    user.status = LOGIN;
+                                    strcpy(user.username, clients[i].username);
+                                    break;
+                                }
+                            }
+
+
                         break;
                     }
                 break;
