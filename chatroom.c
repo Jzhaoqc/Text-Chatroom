@@ -208,11 +208,11 @@ bool join_user(User* user, char session_id[]) {
 void delete_user(User* user, bool exit_server) {
     
     pthread_mutex_lock(&mux); 
-    if(room_list_global == NULL){
-        goto: empty_rooms;
-    }else{
-        Chatroom* current_room = room_list_global->first_room;
+    if((room_list_global == NULL) && exit_server){
+        return;
     }
+    
+    Chatroom* current_room = room_list_global->first_room;
     Chatroom* prev_room = NULL;
     while (current_room != NULL) {
         Member* current_member = current_room->first_member;

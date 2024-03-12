@@ -152,7 +152,7 @@ void client_routine(void* arg){
         }
         else if(n == 0){
             //need implementation
-            delete_user(&user);
+            delete_user(&user, false);
         }
         else if(n != sizeof (Message)){
             perror("WARNING: Message wrong size\n");
@@ -231,6 +231,17 @@ void client_routine(void* arg){
                             delete_user(&user,true);
                             close(client_sock_fd);
                             loop = false;
+
+                                                        client_id = (char*) recv_message.source;
+                            for(int i=0; i<3; i++){
+                                //Logging in if username and password matches
+                                if((strcmp(clients[i].username, client_id))==0){
+                                    clients[i].isOnline = false;
+                                    user.status = LOGIN;
+                                    break;
+                                }
+                            }
+
                         break;
 
 
@@ -342,14 +353,12 @@ void client_routine(void* arg){
                             close(client_sock_fd);
                             loop = false;
 
-                            bool user_logged_out = false;
+                            client_id = (char*) recv_message.source;
                             for(int i=0; i<3; i++){
                                 //Logging in if username and password matches
-                                if((strcmp(clients[i].username, client_id)==0) && (strcmp(clients[i].password, client_password)==0)){
+                                if((strcmp(clients[i].username, client_id))==0){
                                     clients[i].isOnline = false;
-                                    user_logged_out = true;
                                     user.status = LOGIN;
-                                    strcpy(user.username, clients[i].username);
                                     break;
                                 }
                             }
