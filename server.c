@@ -206,6 +206,14 @@ void client_routine(void* arg){
                                 strcpy(reply_message.data,msg);
                             }
                             write(client_sock_fd, &reply_message, sizeof (Message));
+
+                            //debug
+                            printf("\nUser list:\n");
+                            for(int i=0; i<3; i++){
+                                printf("%s\n",clients[i].username);
+                                printf("%d\n",clients[i].isOnline);
+                            }
+
                         break;
 
                         default: ;

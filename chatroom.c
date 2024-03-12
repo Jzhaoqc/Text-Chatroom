@@ -138,7 +138,6 @@ void query(char buff[]) {
         //Logging in if username and password matches
         if(clients[i].isOnline == true){
             snprintf(buff + strlen(buff), BUF_SIZE - strlen(buff), "%s\n", clients[i].username);
-            break;
         }
     }
 
