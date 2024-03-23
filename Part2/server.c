@@ -126,6 +126,8 @@ void client_routine(void* arg){
 
     char* client_id;
     char* client_password;
+    char* priv_msg_target;
+    char* priv_msg_content;
 
     user.sock_fd = pthread_arg->client_sock_fd;
     user.status = LOGOUT;
@@ -307,6 +309,34 @@ void client_routine(void* arg){
                             }
                             write(client_sock_fd, &reply_message, sizeof(Message));
                         break;
+
+                        case TYPE_PRIV_MESSAGE:
+                            printf("[Server]: Received private message from %s.\n", recv_message.source);
+                            strcpy(data_buff, recv_message.data);
+                            
+                            //Extract private message target and content
+                            priv_msg_target = strtok(data_buff," ");
+                            priv_msg_content = strtok(NULL, " ");
+                            printf("    priv target: %s\n", priv_msg_target);
+                            printf("    priv content: %s\n", priv_msg_content);
+
+                            //Check if target logged in
+                            bool is_logged_in = false;
+                            for(int i=0; i<3; i++){
+                                if(strcmp(clients[i].username, priv_msg_target) == 0 ){
+                                    if(clients[i].isOnline){
+                                        is_logged_in = true;
+                                    }
+                                    break;
+                                }
+                            }
+                            if(is_logged_in){
+                                priv_message(&recv_message);
+                            }else{
+                                printf("    target is not logged in, discarding message..\n");
+                            }
+                        break;
+
                     }
                 break;
                 
@@ -337,13 +367,32 @@ void client_routine(void* arg){
                             printf("user status: %d\n", user.status);
                         break;
 
-                        //User message
-                        case TYPE_MESSAGE:
-                            printf("[Server]: Received message from %s.\n", recv_message.source);
-                            //need testing
-                            send_message(&recv_message);
-                            printf("loop: %d\n", loop);
-                            printf("user status: %d\n", user.status);
+                        //User private message
+                        case TYPE_PRIV_MESSAGE:
+                            printf("[Server]: Received private message from %s.\n", recv_message.source);
+                            strcpy(data_buff, recv_message.data);
+                            
+                            //Extract private message target and content
+                            priv_msg_target = strtok(data_buff," ");
+                            priv_msg_content = strtok(NULL, " ");
+                            printf("    priv target: %s\n", priv_msg_target);
+                            printf("    priv content: %s\n", priv_msg_content);
+
+                            //Check if target logged in
+                            bool is_logged_in = false;
+                            for(int i=0; i<3; i++){
+                                if(strcmp(clients[i].username, priv_msg_target) == 0 ){
+                                    if(clients[i].isOnline){
+                                        is_logged_in = true;
+                                    }
+                                    break;
+                                }
+                            }
+                            if(is_logged_in){
+                                priv_message(&recv_message);
+                            }else{
+                                printf("    target is not logged in, discarding message..\n");
+                            }
                         break;
 
 
