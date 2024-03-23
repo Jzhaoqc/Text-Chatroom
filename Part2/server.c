@@ -315,8 +315,10 @@ void client_routine(void* arg){
                             strcpy(data_buff, recv_message.data);
                             
                             //Extract private message target and content
+                            printf("    recv msg:%s\n",recv_message.data);
+                            printf("    data buff:%s\n",data_buff);
                             priv_msg_target = strtok(data_buff," ");
-                            priv_msg_content = strtok(NULL, " ");
+                            priv_msg_content = strtok(NULL, "");
                             printf("    priv target: %s\n", priv_msg_target);
                             printf("    priv content: %s\n", priv_msg_content);
 
@@ -373,8 +375,10 @@ void client_routine(void* arg){
                             strcpy(data_buff, recv_message.data);
                             
                             //Extract private message target and content
+                            printf("    recv msg:%s\n",recv_message.data);
+                            printf("    data buff:%s\n",data_buff);
                             priv_msg_target = strtok(data_buff," ");
-                            priv_msg_content = strtok(NULL, " ");
+                            priv_msg_content = strtok(NULL, "");
                             printf("    priv target: %s\n", priv_msg_target);
                             printf("    priv content: %s\n", priv_msg_content);
 
@@ -395,6 +399,29 @@ void client_routine(void* arg){
                             }
                         break;
 
+                        //User join
+                        case TYPE_JOIN:
+                            printf("[Server]: Received join request.\n");
+
+                            //Get session id and join user
+                            strcpy(session_id,recv_message.data);
+                            //need testing
+                            can_join = join_user(&user, session_id);
+                            if(can_join){
+                                user.status = JOINED;
+                                reply_message.type = TYPE_JN_ACK;
+                                reply_message.size = strlen(session_id);
+                                strcpy(reply_message.data,session_id);
+                                printf("    User: %s joined %s.\n\n\n", user.username, session_id);
+                            }else{
+                                printf("    User: %s failed to joined %s.\n\n\n", user.username, session_id);
+                                reply_message.type = TYPE_JN_NACK;
+                                strcat(session_id, ", ERROR: unable to join, invalid session ID.\n");
+                                strcpy(reply_message.data, session_id);
+                                reply_message.size = strlen(session_id);
+                            }
+                            write(client_sock_fd, &reply_message, sizeof(Message));
+                        break;
 
                         //User leave session
                         case TYPE_LEAVE_SESS:
