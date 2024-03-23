@@ -240,7 +240,7 @@ void client_routine(void* arg){
                             close(client_sock_fd);
                             loop = false;
 
-                                                        client_id = (char*) recv_message.source;
+                            client_id = (char*) recv_message.source;
                             for(int i=0; i<3; i++){
                                 //Logging in if username and password matches
                                 if((strcmp(clients[i].username, client_id))==0){
@@ -327,6 +327,15 @@ void client_routine(void* arg){
                             write(client_sock_fd, &reply_message, sizeof(Message));
                         break;
 
+
+                        //User message
+                        case TYPE_MESSAGE:
+                            printf("[Server]: Received message from %s.\n", recv_message.source);
+                            //need testing
+                            send_message(&recv_message);
+                            printf("loop: %d\n", loop);
+                            printf("user status: %d\n", user.status);
+                        break;
 
                         //User message
                         case TYPE_MESSAGE:
