@@ -15,6 +15,7 @@ const char *LEAVESESSION_CMD = "/leavesession";
 const char *CREATESESSION_CMD = "/createsession";
 const char *LIST_CMD = "/list";
 const char *QUIT_CMD = "/quit";
+const char *PRIV_MESSAGE_CMD = "/p-msg";
 
 //defines constants for message types
 #define TYPE_LOGIN 1
@@ -30,6 +31,7 @@ const char *QUIT_CMD = "/quit";
 #define TYPE_MESSAGE 11
 #define TYPE_QUERY 12
 #define TYPE_QU_ACK 13
+#define TYPE_PRIV_MESSAGE 14
 
 // State of the client
 #define START 0
@@ -213,7 +215,8 @@ int main(){
         2. Join
         3. Create
         4. List
-        5. Quit
+        5. Private Message
+        6. Quit
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
                 
@@ -231,6 +234,7 @@ int main(){
                 printf("Message sent!\n");
 
                 state = START;
+                current_type = TYPE_LOGIN;
                 printf("You have logged out, please re-login.\n");
 
             } else if (strcmp(token, JOINSESSION_CMD) == 0) {
@@ -255,8 +259,6 @@ int main(){
                 printf("Message sent!\n");
 
             } else if (strcmp(token, CREATESESSION_CMD) == 0) {
-
-                
 
                 // Get the session id
                 token = strtok(NULL, " ");
@@ -292,6 +294,42 @@ int main(){
                 current_type = TYPE_QUERY;
                 printf("Message sent!\n");
 
+            } else if (strcmp(token, PRIV_MESSAGE_CMD) == 0) {
+
+                char target[BUF_SIZE];
+                char msg[BUF_SIZE];
+
+                token = strtok(NULL, " "); 
+                if (token == NULL) {
+                    printf("Not enough arguments.\n");
+                    break;
+                }
+                strcpy(target, token);
+
+                token = strtok(NULL, "");
+                if (token == NULL) {
+                    printf("Not enough arguments.\n");
+                    break;
+                }
+                strcpy(msg, token);
+
+                strcat(target, " ");
+                strcat(target, msg);
+                printf("target: %s\n", target);
+
+                client_message.type = TYPE_PRIV_MESSAGE;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, target);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+
+                printf("Message sent!\n");
+
             } else if (strcmp(token, QUIT_CMD) == 0) {
                 // Create a exit message
                 client_message.type = TYPE_EXIT;
@@ -316,7 +354,8 @@ int main(){
         1. Logout
         2. Leave
         3. List
-        4. Quit
+        4. Private Message
+        5. Quit
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
 
@@ -333,7 +372,7 @@ int main(){
                 }
                 printf("Message sent!\n");
                 state = START;
-                
+                current_type = TYPE_LOGIN;
                 printf("You have logged out, please re-login.\n");
 
             } else if (strcmp(token, LEAVESESSION_CMD) == 0) {
@@ -365,6 +404,42 @@ int main(){
                 }
                 // Create client message
                 current_type = TYPE_QUERY;
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, PRIV_MESSAGE_CMD) == 0) {
+
+                char target[BUF_SIZE];
+                char msg[BUF_SIZE];
+
+                token = strtok(NULL, " "); 
+                if (token == NULL) {
+                    printf("Not enough arguments.\n");
+                    break;
+                }
+                strcpy(target, token);
+
+                token = strtok(NULL, "");
+                if (token == NULL) {
+                    printf("Not enough arguments.\n");
+                    break;
+                }
+                strcpy(msg, token);
+
+                strcat(target, " ");
+                strcat(target, msg);
+                printf("target: %s\n", target);
+
+                client_message.type = TYPE_PRIV_MESSAGE;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, target);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+
                 printf("Message sent!\n");
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
@@ -413,10 +488,12 @@ void *recv_login(void * arg) {
     while (threadLoop) {
         memset(&server_message, 0, sizeof(Message));
 
-        if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
-            perror("Read error!\n");
-            exit(1);
-        }
+        read(arguments->socket_fd, &server_message, sizeof(server_message));
+
+        // if (read(arguments->socket_fd, &server_message, sizeof(server_message)) <= 0) {
+        //     perror("Read error!\n");
+        //     exit(1);
+        // }
         
         if (server_message.type == TYPE_MESSAGE) {
             printf("%s\n", server_message.data);
