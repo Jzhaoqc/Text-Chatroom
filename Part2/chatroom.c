@@ -72,59 +72,65 @@ void send_message(Message* recv_message){
     char msg_buff[100];
     char* msg_spacer = " > ";
 
-    //Find which room the user is from 
-    while( (current_room != NULL) && !(found_source) ){
-        current_member  = current_room->first_member;
-        //Find if source exist within current chatroom
-        while(current_member != NULL){
-            if( (strcmp(current_member->user->username, source_username)) == 0){
-                found_source = true;
-                break;
+    while(current_room != NULL){
+        //Find which room the user is from 
+        while( (current_room != NULL) && !(found_source) ){
+            current_member  = current_room->first_member;
+            //Find if source exist within current chatroom
+            while(current_member != NULL){
+                if( (strcmp(current_member->user->username, source_username)) == 0){
+                    found_source = true;
+                    break;
+                }
+
+                current_member = current_member->next;
             }
 
+            if(found_source){
+                break;
+            }else{
+                current_room = current_room->next;
+            }
+        }
+
+        // if(!found_source){
+        //     printf("ERROR: send_message func should find the user but couldn't.\n");
+        //     return;
+        // }
+
+        //Sending message to everyone in the room
+        current_member = current_room->first_member;
+        while(current_member != NULL){
+            
+            //Send to every user in the room except for the source
+            if(strcmp(current_member->user->username, source_username) != 0){
+
+                //Construct reply message
+                Message reply_msg;
+                memset(&reply_msg, 0, sizeof(Message));
+                strcpy(msg_buff, current_room->room_name);
+                strcat(msg_buff, msg_spacer);
+                strcat(msg_buff, recv_message->source);
+                strcat(msg_buff, msg_spacer);
+                strcat(msg_buff, recv_message->data);
+                printf("%s", msg_buff);
+                reply_msg.type = TYPE_MESSAGE;
+                strcpy(reply_msg.source, source_username);
+                reply_msg.size = strlen(msg_buff);
+                strncpy(reply_msg.data,msg_buff,strlen(msg_buff));
+
+                if((write(current_member->user->sock_fd, &reply_msg, sizeof(Message)) )<0){
+                    printf("ERROR: write fault\n");
+                }
+            }
+
+            printf("going to the next member...\n");
             current_member = current_member->next;
         }
 
-        if(found_source){
-            break;
-        }else{
-            current_room = current_room->next;
-        }
+        //reset found source, keep traversing to see if user is in multiple rooms.
+        found_source = false;
     }
-
-    if(!found_source){
-        printf("ERROR: send_message func should find the user but couldn't.\n");
-        return;
-    }
-
-    //Sending message to everyone in the room
-    current_member = current_room->first_member;
-    while(current_member != NULL){
-        
-        //Send to every user in the room except for the source
-        if(strcmp(current_member->user->username, source_username) != 0){
-
-            //Construct reply message
-            Message reply_msg;
-            memset(&reply_msg, 0, sizeof(Message));
-            strcpy(msg_buff, recv_message->source);
-            strcat(msg_buff, msg_spacer);
-            strcat(msg_buff, recv_message->data);
-            printf("%s", msg_buff);
-            reply_msg.type = TYPE_MESSAGE;
-            strcpy(reply_msg.source, source_username);
-            reply_msg.size = strlen(msg_buff);
-            strncpy(reply_msg.data,msg_buff,strlen(msg_buff));
-
-            if((write(current_member->user->sock_fd, &reply_msg, sizeof(Message)) )<0){
-                printf("ERROR: write fault\n");
-            }
-        }
-
-        printf("going to the next member...\n");
-        current_member = current_member->next;
-    }
-
 }
 
 void query(char buff[]) { 
