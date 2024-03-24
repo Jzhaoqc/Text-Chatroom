@@ -66,7 +66,7 @@ void print_all_room(){
 }
 
 // Pass in the target for the private message
-void send_private_message(char *target, char *msg){
+void send_private_message(char* source, char *target, char *msg){
 
     for (int i = 0; i < 3; i++) {
         if (strcmp(users[i]->username, target) == 0) {
@@ -74,7 +74,9 @@ void send_private_message(char *target, char *msg){
             Message reply_msg;
             memset(&reply_msg, 0, sizeof(Message));
             reply_msg.type = TYPE_MESSAGE;
-            strcpy(reply_msg.data, msg);
+            strcpy(reply_msg.data, source);
+            strcat(reply_msg.data," > ");
+            strcat(reply_msg.data, msg);
 
             if((write(users[i]->sock_fd, &reply_msg, sizeof(Message))) < 0){
                 printf("ERROR: write fault\n");
@@ -113,6 +115,10 @@ void send_message(Message* recv_message){
             }else{
                 current_room = current_room->next;
             }
+        }
+
+        if(current_room == NULL){
+            break;
         }
 
         //Sending message to everyone in the room
