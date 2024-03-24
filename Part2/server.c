@@ -351,7 +351,7 @@ void client_routine(void* arg){
                                 }
                             }
                             if(is_logged_in){
-                                priv_message(priv_msg_target,priv_msg_content);
+                                send_private_message(priv_msg_target,priv_msg_content);
                             }else{
                                 printf("    target is not logged in, discarding message..\n");
                             }
@@ -411,7 +411,7 @@ void client_routine(void* arg){
                                 }
                             }
                             if(is_logged_in){
-                                priv_message(priv_msg_target,priv_msg_content);
+                                send_private_message(priv_msg_target,priv_msg_content);
                             }else{
                                 printf("    target is not logged in, discarding message..\n");
                             }
