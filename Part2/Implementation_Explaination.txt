@@ -7,6 +7,6 @@ Private Messaging Implementation:
         a. When a user logs in, it will be added into the list
         b. When a user logs out or disconnects, it will be changed to NULL.
     4. Added chatroom function "send_priv_message" to loop through all the users and send to the matched one.
-    3. When server detects the packet is a private message, it calls the "send_priv_message" function.
+    5. When server detects the packet is a private message, it calls the "send_priv_message" function.
 
 Multiple Session Implementation:
