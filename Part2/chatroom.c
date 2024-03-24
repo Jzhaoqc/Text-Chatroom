@@ -119,11 +119,6 @@ void send_message(Message* recv_message){
             }
         }
 
-        // if(!found_source){
-        //     printf("ERROR: send_message func should find the user but couldn't.\n");
-        //     return;
-        // }
-
         //Sending message to everyone in the room
         current_member = current_room->first_member;
         while(current_member != NULL){
@@ -156,6 +151,7 @@ void send_message(Message* recv_message){
 
         //reset found source, keep traversing to see if user is in multiple rooms.
         found_source = false;
+        current_room = current_room->next;
     }
 }
 
