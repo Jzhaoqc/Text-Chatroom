@@ -81,8 +81,8 @@ typedef struct chatroomlist{
 
 extern Chatroom_List* room_list_global;
 extern pthread_mutex_t mux;
-extern User* user_list_global;
 extern Client clients[3];
+extern User users[3];
 
 void delete_user(User* user, bool exit_server);
 void query(char buff[]); //travers 2D linked list

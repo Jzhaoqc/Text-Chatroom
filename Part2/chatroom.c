@@ -4,6 +4,7 @@ Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
 Client clients[3]= { {"user1", "123", false}, {"user2", "123", false}, {"user3", "123", false} };
 
+
 //create chatroom node, add to big list
 void create_chatroom(char* session_id, User* user){
     Chatroom *current = NULL;
@@ -61,6 +62,30 @@ void print_all_room(){
     }
 
     printf("\n");
+}
+
+// Pass in the target for the private message
+void send_private_message(Message* recv_message, char *target){
+
+    char* source_username = recv_message->source;
+    Chatroom* current_room = room_list_global->first_room;
+    Member* current_member;
+
+    while (current_room != NULL) {
+
+        current_member = current_room->first_member;
+
+        while (current_member != NULL) {
+
+            if (strcmp(current_member->user->username, target) == 0) {
+                // Found user in a room
+            }
+            current_member = current_member->next;
+
+        }
+        current_room = current_room->next;
+    }
+
 }
 
 //parse username, check from linked list. broadcast: send message to all file descriptors within chatroom members

@@ -238,6 +238,9 @@ int main(){
                 printf("You have logged out, please re-login.\n");
 
             } else if (strcmp(token, JOINSESSION_CMD) == 0) {
+                
+                // Change type for reading ACK
+                current_type = TYPE_JOIN;
 
                 // Get the session id
                 token = strtok(NULL, " ");
@@ -254,11 +257,13 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
-                // Change type for reading ACK
-                current_type = TYPE_JOIN;
+                
                 printf("Message sent!\n");
 
             } else if (strcmp(token, CREATESESSION_CMD) == 0) {
+
+                // Change type for reading ACK
+                current_type = TYPE_NEW_SESS;
 
                 // Get the session id
                 token = strtok(NULL, " ");
@@ -275,11 +280,12 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
-                // Change type for reading ACK
-                current_type = TYPE_NEW_SESS;
                 printf("Message sent!\n");
 
             } else if (strcmp(token, LIST_CMD) == 0) {
+
+                // Create client message
+                current_type = TYPE_QUERY;
 
                 client_message.type = TYPE_QUERY;
                 strcpy(client_message.source, USER_ID);
@@ -290,8 +296,6 @@ int main(){
                     perror("Send error!\n");
                     exit(1);
                 }
-                // Create client message
-                current_type = TYPE_QUERY;
                 printf("Message sent!\n");
 
             } else if (strcmp(token, PRIV_MESSAGE_CMD) == 0) {
