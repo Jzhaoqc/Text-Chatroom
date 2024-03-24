@@ -3,6 +3,7 @@
 Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
 Client clients[3]= { {"user1", "123", false}, {"user2", "123", false}, {"user3", "123", false} };
+User users[3] = {NULL, NULL, NULL};
 
 
 //create chatroom node, add to big list
@@ -240,6 +241,25 @@ void delete_user(User* user, bool exit_server) {
     pthread_mutex_lock(&mux); 
     if((room_list_global == NULL) && exit_server){
         return;
+    }
+
+    //Take user out of private message array if the user is exiting the server
+    if(exit_server){
+        for(int i=0; i<3; i++){
+            if(strcmp(users[i].username,user->username) == 0 ){
+                user[i] = NULL;
+                break;
+            }
+        }
+
+        //Output all available users for private msg
+        printf("\nPrivate Message User List:\n");
+        for(int i=0; i<3; i++){
+            if(user[i]!= NULL){
+                printf(",");
+                printf("%s", users[i].username);
+            }
+        }
     }
     
     Chatroom* current_room = room_list_global->first_room;

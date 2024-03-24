@@ -194,6 +194,24 @@ void client_routine(void* arg){
                                     user_exists = true;
                                     user.status = LOGIN;
                                     strcpy(user.username, clients[i].username);
+
+                                    //Append user to global array for private message
+                                    for(int i=0; i<3; i++){
+                                        if(users[i] == NULL){
+                                            users[i] = user;
+                                            break;
+                                        }
+                                    }
+
+                                    //Output all available users for private msg
+                                    printf("\nPrivate Message User List:\n");
+                                    for(int i=0; i<3; i++){
+                                        if(user[i]!= NULL){
+                                            printf(",");
+                                            printf("%s", users[i].username);
+                                        }
+                                    }
+
                                     break;
                                 }
                             }
