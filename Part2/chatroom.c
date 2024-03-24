@@ -3,7 +3,7 @@
 Chatroom_List* room_list_global;
 pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
 Client clients[3]= { {"user1", "123", false}, {"user2", "123", false}, {"user3", "123", false} };
-User users[3] = {NULL, NULL, NULL};
+User* users [3] = {NULL};
 
 
 //create chatroom node, add to big list
@@ -69,14 +69,14 @@ void print_all_room(){
 void send_private_message(char *target, char *msg){
 
     for (int i = 0; i < 3; i++) {
-        if (strcmp(users[i].username, target) == 0) {
+        if (strcmp(users[i]->username, target) == 0) {
             
             Message reply_msg;
             memset(&reply_msg, 0, sizeof(Message));
             reply_msg.type = TYPE_MESSAGE;
             strcpy(reply_msg.data, msg);
 
-            if((write(users[i].sock_fd, &reply_msg, sizeof(Message))) < 0){
+            if((write(users[i]->sock_fd, &reply_msg, sizeof(Message))) < 0){
                 printf("ERROR: write fault\n");
             }
             break;
@@ -238,8 +238,8 @@ void delete_user(User* user, bool exit_server) {
     //Take user out of private message array if the user is exiting the server
     if(exit_server){
         for(int i=0; i<3; i++){
-            if(strcmp(users[i].username,user->username) == 0 ){
-                user[i] = NULL;
+            if(strcmp(users[i]->username,user->username) == 0 ){
+                users[i] = NULL;
                 break;
             }
         }
@@ -247,9 +247,9 @@ void delete_user(User* user, bool exit_server) {
         //Output all available users for private msg
         printf("\nPrivate Message User List:\n");
         for(int i=0; i<3; i++){
-            if(user[i]!= NULL){
+            if(users[i] != NULL){
                 printf(",");
-                printf("%s", users[i].username);
+                printf("%s", users[i]->username);
             }
         }
     }

@@ -198,7 +198,7 @@ void client_routine(void* arg){
                                     //Append user to global array for private message
                                     for(int i=0; i<3; i++){
                                         if(users[i] == NULL){
-                                            users[i] = user;
+                                            users[i] = &user;
                                             break;
                                         }
                                     }
@@ -206,9 +206,9 @@ void client_routine(void* arg){
                                     //Output all available users for private msg
                                     printf("\nPrivate Message User List:\n");
                                     for(int i=0; i<3; i++){
-                                        if(user[i]!= NULL){
+                                        if(users[i]!= NULL){
                                             printf(",");
-                                            printf("%s", users[i].username);
+                                            printf("%s", users[i]->username);
                                         }
                                     }
 
