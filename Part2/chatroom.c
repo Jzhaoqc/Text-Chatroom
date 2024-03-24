@@ -312,7 +312,3 @@ void delete_user(User* user, bool exit_server) {
     
     pthread_mutex_unlock(&mux); // Unlock before returning
 }
-
-void priv_message(Message* recv_message){
-    
-}
