@@ -66,25 +66,21 @@ void print_all_room(){
 }
 
 // Pass in the target for the private message
-void send_private_message(Message* recv_message, char *target){
+void send_private_message(char *target, char *msg){
 
-    char* source_username = recv_message->source;
-    Chatroom* current_room = room_list_global->first_room;
-    Member* current_member;
+    for (int i = 0; i < 3; i++) {
+        if (strcmp(users[i].username, target) == 0) {
+            
+            Message reply_msg;
+            memset(&reply_msg, 0, sizeof(Message));
+            reply_msg.type = TYPE_MESSAGE;
+            strcpy(reply_msg.data, msg);
 
-    while (current_room != NULL) {
-
-        current_member = current_room->first_member;
-
-        while (current_member != NULL) {
-
-            if (strcmp(current_member->user->username, target) == 0) {
-                // Found user in a room
+            if((write(users[i].sock_fd, &reply_msg, sizeof(Message))) < 0){
+                printf("ERROR: write fault\n");
             }
-            current_member = current_member->next;
-
-        }
-        current_room = current_room->next;
+            break;
+        } 
     }
 
 }

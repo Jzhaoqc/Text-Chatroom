@@ -359,7 +359,9 @@ int main(){
         2. Leave
         3. List
         4. Private Message
-        5. Quit
+        5. Join another
+        6. Quit
+        7. Message
         */
             if (strcmp(token, LOGOUT_CMD) == 0) {
 
@@ -444,6 +446,29 @@ int main(){
                     exit(1);
                 }
 
+                printf("Message sent!\n");
+
+            } else if (strcmp(token, JOINSESSION_CMD) == 0) {
+                
+                // Change type for reading ACK
+                current_type = TYPE_JOIN;
+
+                // Get the session id
+                token = strtok(NULL, " ");
+                char *session_id = token;
+                
+                // Create client message
+                client_message.type = TYPE_JOIN;
+                strcpy(client_message.source, USER_ID);
+                strcpy(client_message.data, session_id);
+                client_message.size = sizeof(client_message.data);
+
+                // Send the message to server
+                if (send(sock_fd, &client_message, sizeof(client_message), 0) != sizeof(Message)) {
+                    perror("Send error!\n");
+                    exit(1);
+                }
+                
                 printf("Message sent!\n");
 
             } else if (strcmp(token, QUIT_CMD) == 0) {
