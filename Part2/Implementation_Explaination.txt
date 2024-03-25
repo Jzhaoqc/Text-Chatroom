@@ -10,3 +10,12 @@ Private Messaging Implementation:
     5. When server detects the packet is a private message, it calls the "send_priv_message" function.
 
 Multiple Session Implementation:
+    1. Added functionality to join multiple session when a user is logged in and already joined a session.
+        a. Using same command /joinsession <session id> to join any amount session while the user is logged in
+    2. Added feature that automatically leaves all sessions a user is currently in when recieving /leavesession command.
+        a. Due to the function requirement that leavesession packet does not specify which session to leave and 
+           it is required to keep all functionalities from the first part, the group implemented leave session to
+           leave all sessions.
+    3. Message viewable in multiple sessions when the sender is joined in such sessions.
+        a. By adding message header that specifies which chatroom and which sender a message is from,
+           when the message is broadcasted the receivers would be able to tell which room this message came from.
